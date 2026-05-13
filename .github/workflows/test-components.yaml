@@ -48,8 +48,6 @@ jobs:
           cran: ${{ matrix.config.cran-date && format('https://packagemanager.posit.co/cran/{0}', matrix.config.cran-date) || '' }}
           extra-repositories: ${{ matrix.config.cran-date && 'https://novonordisk-opensource.r-universe.dev' || '' }}
       - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: local::.
       - name: Run component tests
         run: |
           dirs <- list.dirs("components", recursive = FALSE)
