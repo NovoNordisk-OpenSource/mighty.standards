@@ -12,80 +12,30 @@ permissions:
   contents: read
 jobs:
   test-components:
-    runs-on: ${{ matrix.config.os }}
-    name: ${{ matrix.config.os }} (R ${{ matrix.config.r }}, ${{ matrix.config.source }})
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} (R ${{ matrix.config.r }}${{ matrix.config.cran-date && format(', {0}', matrix.config.cran-date) || '' }})
     strategy:
       fail-fast: false
       matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
         config:
-          # Current versions
+          - r: '4.3.1'
+            cran-date: '2023-10-25'
+          - r: '4.4.1'
+            cran-date: '2024-08-06'
+          - r: '4.5.2'
+            cran-date: '2025-12-05'
+        include:
           - os: macos-latest
-            r: release
-            source: current
-            use-public-rspm: true
+            config: { r: release }
           - os: windows-latest
-            r: release
-            source: current
-            use-public-rspm: true
+            config: { r: release }
           - os: ubuntu-latest
-            r: devel
-            source: current
-            use-public-rspm: true
-            http-user-agent: release
+            config: { r: devel, http-user-agent: release }
           - os: ubuntu-latest
-            r: release
-            source: current
-            use-public-rspm: true
+            config: { r: release }
           - os: ubuntu-latest
-            r: oldrel-1
-            source: current
-            use-public-rspm: true
-          # NN versions
-          - os: macos-latest
-            r: '4.3.1'
-            source: nn-2023-10-25
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2023-10-25
-          - os: windows-latest
-            r: '4.3.1'
-            source: nn-2023-10-25
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2023-10-25
-          - os: ubuntu-latest
-            r: '4.3.1'
-            source: nn-2023-10-25
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2023-10-25
-          - os: macos-latest
-            r: '4.4.1'
-            source: nn-2024-08-06
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2024-08-06
-          - os: windows-latest
-            r: '4.4.1'
-            source: nn-2024-08-06
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2024-08-06
-          - os: ubuntu-latest
-            r: '4.4.1'
-            source: nn-2024-08-06
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2024-08-06
-          - os: macos-latest
-            r: '4.5.2'
-            source: nn-2025-12-05
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2025-12-05
-          - os: windows-latest
-            r: '4.5.2'
-            source: nn-2025-12-05
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2025-12-05
-          - os: ubuntu-latest
-            r: '4.5.2'
-            source: nn-2025-12-05
-            use-public-rspm: false
-            cran: https://packagemanager.posit.co/cran/2025-12-05
+            config: { r: oldrel-1 }
     env:
       R_KEEP_PKG_SOURCE: true
     steps:
@@ -94,9 +44,9 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
-          use-public-rspm: ${{ matrix.config.use-public-rspm }}
-          cran: ${{ matrix.config.cran }}
-          extra-repositories: ${{ matrix.config.cran && 'https://novonordisk-opensource.r-universe.dev' || '' }}
+          use-public-rspm: ${{ !matrix.config.cran-date }}
+          cran: ${{ matrix.config.cran-date && format('https://packagemanager.posit.co/cran/{0}', matrix.config.cran-date) || '' }}
+          extra-repositories: ${{ matrix.config.cran-date && 'https://novonordisk-opensource.r-universe.dev' || '' }}
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: local::.
