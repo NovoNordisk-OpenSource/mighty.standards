@@ -1,6 +1,6 @@
 test_that("dummy", {
   dummy <- mighty.component::get_test_component(
-    component = file.path("components", "dummy", "dummy.mustache"),
+    component = "dummy.mustache",
     params = list(domain = "df", variable = "y", value = 1)
   )
 
