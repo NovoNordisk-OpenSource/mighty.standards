@@ -4,9 +4,9 @@ test_that("dummy", {
     params = list(domain = "df", variable = "y", value = 1)
   )
 
-  df <- data.frame(x = "a", y = 1)
+  dummy$assign(x = "df", value = data.frame(x = "a"))
 
-  dummy$assign(x = "df", value = dplyr::select(df, -y))
-  dummy$eval()$get("df") |>
-    expect_equal(df)
+  df <- dummy$eval()$get("df")
+
+  expect_equal(df, data.frame(x = "a", y = 1))
 })

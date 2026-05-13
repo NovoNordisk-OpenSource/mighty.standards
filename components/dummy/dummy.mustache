@@ -9,7 +9,4 @@
 #' @type assigned
 #' @outputs {{variable}}
 #' @code
-{{domain}} <- {{domain}} |>
-  dplyr::mutate(
-    {{variable}} = {{{value}}}
-  )
+{{domain}}[["{{variable}}"]] <- {{{value}}}
