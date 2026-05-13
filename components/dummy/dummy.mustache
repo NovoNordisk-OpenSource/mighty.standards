@@ -1,0 +1,15 @@
+#' @title Dummy
+#' @description
+#' Dummy component for testing purposes.
+#' Assigns a constant value to a variable.
+#'
+#' @param domain `character` Name of the domain
+#' @param variable `character` Name of variable to create
+#' @param value Value to assign
+#' @type assigned
+#' @outputs {{variable}}
+#' @code
+{{domain}} <- {{domain}} |>
+  dplyr::mutate(
+    {{variable}} = {{{value}}}
+  )
