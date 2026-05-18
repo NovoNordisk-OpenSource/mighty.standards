@@ -18,5 +18,33 @@ mighty.standards/
 ```
 
 - `components/` — each component lives in its own directory containing a mustache template and a test file.
-- `DESCRIPTION` — lists the R package dependencies required by components.
+- `DESCRIPTION` — infrastructure dependencies (`covr`, `testthat`, `mighty.component`) go under `Suggests`. Packages used in component code go under `Imports`.
 - `.github/` — issue templates, PR template, and CI workflows.
+
+## CI workflow
+
+The `test-components` workflow runs on:
+
+- Push and PR to `main`
+- Push and PR to `dev/**` branches (for staging draft components)
+
+## Running tests locally
+
+Install dependencies:
+
+```r
+pak::pak()
+```
+
+Run all component tests:
+
+```r
+dirs <- list.dirs("components", recursive = FALSE)
+lapply(dirs, testthat::test_dir, stop_on_failure = TRUE)
+```
+
+Run tests for a single component:
+
+```r
+testthat::test_dir("components/dummy")
+```
