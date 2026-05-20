@@ -34,16 +34,17 @@ mock_adsl <- data.frame(ARM = "A", STUDYID = "S001", USUBJID = "U001", stringsAs
 inject_connector_mock <- function(component, mock_cnt) {
   component$.__enclos_env__$private$.session$run(
     func = function(mock) {
-      if (requireNamespace("connector", quietly = TRUE)) {
-        assignInNamespace("connect", function(...) mock, ns = "connector")
-      } else {
-        fake_ns <- new.env(parent = .BaseNamespaceEnv, hash = TRUE)
-        fake_ns$connect <- function(...) mock
-        assign(
-          "connector", fake_ns,
-          envir = get(".NamespaceRegistry", envir = asNamespace("base"), inherits = FALSE)
-        )
-      }
+      assign(".mock_cnt", mock, envir = globalenv())
+      unlockBinding(".test_fn", globalenv())
+      fn_str <- get(".test_fn", envir = globalenv())
+      fn_str <- sub(
+        "connector::connect(",
+        "(function(...) get('.mock_cnt', envir = globalenv()))(",
+        fn_str,
+        fixed = TRUE
+      )
+      assign(".test_fn", fn_str, envir = globalenv())
+      lockBinding(".test_fn", globalenv())
     },
     args = list(mock = mock_cnt)
   )
