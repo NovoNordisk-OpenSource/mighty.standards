@@ -34,7 +34,12 @@ mock_adsl <- data.frame(ARM = "A", STUDYID = "S001", USUBJID = "U001", stringsAs
 inject_connector_mock <- function(component, mock_cnt) {
   component$.__enclos_env__$private$.session$run(
     func = function(mock) {
-      assignInNamespace("connect", function(...) mock, ns = "connector")
+      if (isNamespaceLoaded("connector")) {
+        assignInNamespace("connect", function(...) mock, ns = "connector")
+      } else {
+        ns <- base:::makeNamespace("connector", version = "0.0.0-mock")
+        assign("connect", function(...) mock, envir = ns)
+      }
     },
     args = list(mock = mock_cnt)
   )
