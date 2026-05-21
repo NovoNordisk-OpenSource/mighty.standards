@@ -1,0 +1,120 @@
+# Parameter contracts for the _write_data component are documented in the mighty
+# vignette: https://novonordisk-opensource.github.io/mighty/articles/special_components.html
+
+# params -----------------------------------------------------------------------
+params_with_row_order_and_keep <- list(
+  self = "ADSL",
+  file_ext = "parquet",
+  row_order_vars = "USUBJID",
+  keep_vars = "USUBJID, AGE, SEX"
+)
+
+params_row_order_only <- list(
+  self = "ADLB",
+  file_ext = "parquet",
+  row_order_vars = "USUBJID,\nPARAMCD",
+  keep_vars = NULL
+)
+
+params_keep_only <- list(
+  self = "ADSL",
+  file_ext = "parquet",
+  row_order_vars = NULL,
+  keep_vars = "USUBJID, AGE"
+)
+
+params_write_only <- list(
+  self = "ADSL",
+  file_ext = "sas7bdat",
+  row_order_vars = NULL,
+  keep_vars = NULL
+)
+
+# mocks ------------------------------------------------------------------------
+# _write_data uses `cnt` directly (not via connector::connect), so it is
+# injected into the callr session using component$assign(). This avoids the
+# need for any .test_fn string patching and does not require the connector
+# package to be installed.
+mock_cnt <- list(
+  adam = list(
+    write_cnt = function(...) invisible(NULL)
+  )
+)
+
+# tests ------------------------------------------------------------------------
+
+test_that("row order + keep vars: renders arrange, select, and write blocks", {
+  # SETUP ----------------------------------------------------------------------
+  component <- mighty.component::get_test_component(
+    component = "_write_data.mustache",
+    params = params_with_row_order_and_keep
+  )
+  rendered <- paste(component$code, collapse = "\n")
+
+  # EXPECT ---------------------------------------------------------------------
+  expect_match(rendered, "ADSL <- ADSL |> dplyr::arrange(USUBJID)", fixed = TRUE)
+  expect_match(rendered, "ADSL <- ADSL |> dplyr::select(USUBJID, AGE, SEX)", fixed = TRUE)
+  expect_match(rendered, 'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)', fixed = TRUE)
+
+  # COVERAGE -------------------------------------------------------------------
+  component$assign(x = "ADSL", value = data.frame(USUBJID = "U001", AGE = 30L, SEX = "M", stringsAsFactors = FALSE))
+  component$assign(x = "cnt", value = mock_cnt)
+  component$eval()
+})
+
+test_that("row order only: renders arrange and write without select", {
+  # SETUP ----------------------------------------------------------------------
+  component <- mighty.component::get_test_component(
+    component = "_write_data.mustache",
+    params = params_row_order_only
+  )
+  rendered <- paste(component$code, collapse = "\n")
+
+  # EXPECT ---------------------------------------------------------------------
+  expect_match(rendered, "ADLB <- ADLB |> dplyr::arrange(USUBJID,\nPARAMCD)", fixed = TRUE)
+  expect_match(rendered, 'cnt$adam$write_cnt(ADLB, tolower("ADLB.parquet"), overwrite = TRUE)', fixed = TRUE)
+  expect_no_match(rendered, "dplyr::select", fixed = TRUE)
+
+  # COVERAGE -------------------------------------------------------------------
+  component$assign(x = "ADLB", value = data.frame(USUBJID = "U001", PARAMCD = "ALT", AVAL = 1.0, stringsAsFactors = FALSE))
+  component$assign(x = "cnt", value = mock_cnt)
+  component$eval()
+})
+
+test_that("keep vars only: renders select and write without arrange", {
+  # SETUP ----------------------------------------------------------------------
+  component <- mighty.component::get_test_component(
+    component = "_write_data.mustache",
+    params = params_keep_only
+  )
+  rendered <- paste(component$code, collapse = "\n")
+
+  # EXPECT ---------------------------------------------------------------------
+  expect_match(rendered, "ADSL <- ADSL |> dplyr::select(USUBJID, AGE)", fixed = TRUE)
+  expect_match(rendered, 'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)', fixed = TRUE)
+  expect_no_match(rendered, "dplyr::arrange", fixed = TRUE)
+
+  # COVERAGE -------------------------------------------------------------------
+  component$assign(x = "ADSL", value = data.frame(USUBJID = "U001", AGE = 30L, stringsAsFactors = FALSE))
+  component$assign(x = "cnt", value = mock_cnt)
+  component$eval()
+})
+
+test_that("write only: renders write with custom file extension and no sort or select", {
+  # SETUP ----------------------------------------------------------------------
+  component <- mighty.component::get_test_component(
+    component = "_write_data.mustache",
+    params = params_write_only
+  )
+  rendered <- paste(component$code, collapse = "\n")
+
+  # EXPECT ---------------------------------------------------------------------
+  expect_match(rendered, 'cnt$adam$write_cnt(ADSL, tolower("ADSL.sas7bdat"), overwrite = TRUE)', fixed = TRUE)
+  expect_no_match(rendered, "dplyr::arrange", fixed = TRUE)
+  expect_no_match(rendered, "dplyr::select", fixed = TRUE)
+
+  # COVERAGE -------------------------------------------------------------------
+  component$assign(x = "ADSL", value = data.frame(USUBJID = "U001", stringsAsFactors = FALSE))
+  component$assign(x = "cnt", value = mock_cnt)
+  component$eval()
+})
