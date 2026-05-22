@@ -5,7 +5,7 @@
 #' @type internal
 #' @param self Character string. Name of the ADaM domain to persist (e.g. `"ADSL"`, `"ADLB"`).
 #' @param row_order_vars Character string or `NULL`. Primary key columns used to sort rows, formatted as a `,\n`-separated string. `NULL` when no row order is defined — the sort block is skipped.
-#' @param keep_vars Character vector or string or NULL. Output columns in specification order. `NULL` for intermediate programs in multi-program domains. When there are more than three columns, passed as a pre-formatted comma-separated string. Columns not yet available are prefixed with `# `.
+#' @param keep_vars Character string or `NULL`. Output columns in specification order, formatted as a `,\n`-separated string. `NULL` for intermediate programs in multi-program domains — the select block is skipped. Columns not yet available are prefixed with `# `.
 #' @param file_ext Character string. File extension for the persisted dataset. Defaults to `"parquet"`.
 #' @code
 {{#row_order_vars}}
