@@ -52,14 +52,37 @@ test_that("row order + keep vars: renders arrange, select, and write blocks", {
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, "ADSL <- ADSL |> dplyr::arrange(USUBJID)", fixed = TRUE)
-  expect_match(rendered, "ADSL <- ADSL |> dplyr::select(USUBJID, AGE, SEX)", fixed = TRUE)
-  expect_match(rendered, 'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)', fixed = TRUE)
+  expect_match(
+    rendered,
+    "ADSL <- ADSL |> dplyr::arrange(USUBJID)",
+    fixed = TRUE
+  )
+  expect_match(
+    rendered,
+    "ADSL <- ADSL |> dplyr::select(USUBJID, AGE, SEX)",
+    fixed = TRUE
+  )
+  expect_match(
+    rendered,
+    'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)',
+    fixed = TRUE
+  )
 
   # COVERAGE -------------------------------------------------------------------
-  component$assign(x = "ADSL", value = data.frame(USUBJID = "U001", AGE = 30L, SEX = "M", stringsAsFactors = FALSE))
+  component$assign(
+    x = "ADSL",
+    value = data.frame(
+      SEX = "M",
+      COUNTRY = "US",
+      USUBJID = "U001",
+      AGE = 30L,
+      stringsAsFactors = FALSE
+    )
+  )
   component$assign(x = "cnt", value = mock_cnt)
   component$eval()
+  expect_false("COUNTRY" %in% names(component$get("ADSL")))
+  expect_equal(names(component$get("ADSL")), c("USUBJID", "AGE", "SEX"))
 })
 
 test_that("row order only: renders arrange and write without select", {
@@ -71,14 +94,32 @@ test_that("row order only: renders arrange and write without select", {
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, "ADLB <- ADLB |> dplyr::arrange(USUBJID,\nPARAMCD)", fixed = TRUE)
-  expect_match(rendered, 'cnt$adam$write_cnt(ADLB, tolower("ADLB.parquet"), overwrite = TRUE)', fixed = TRUE)
+  expect_match(
+    rendered,
+    "ADLB <- ADLB |> dplyr::arrange(USUBJID,\nPARAMCD)",
+    fixed = TRUE
+  )
+  expect_match(
+    rendered,
+    'cnt$adam$write_cnt(ADLB, tolower("ADLB.parquet"), overwrite = TRUE)',
+    fixed = TRUE
+  )
   expect_no_match(rendered, "dplyr::select", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
-  component$assign(x = "ADLB", value = data.frame(USUBJID = "U001", PARAMCD = "ALT", AVAL = 1.0, stringsAsFactors = FALSE))
+  component$assign(
+    x = "ADLB",
+    value = data.frame(
+      USUBJID = c("U001", "U001"),
+      PARAMCD = c("BILI", "ALT"),
+      AVAL = c(1.0, 2.0),
+      stringsAsFactors = FALSE
+    )
+  )
   component$assign(x = "cnt", value = mock_cnt)
-  component$eval()
+  result_adlb <- component$eval()$get("ADLB")
+  expect_equal(result_adlb$PARAMCD, c("ALT", "BILI"))
+  expect_equal(result_adlb$AVAL, c(2.0, 1.0))
 })
 
 test_that("keep vars only: renders select and write without arrange", {
@@ -90,14 +131,31 @@ test_that("keep vars only: renders select and write without arrange", {
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, "ADSL <- ADSL |> dplyr::select(USUBJID, AGE)", fixed = TRUE)
-  expect_match(rendered, 'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)', fixed = TRUE)
+  expect_match(
+    rendered,
+    "ADSL <- ADSL |> dplyr::select(USUBJID, AGE)",
+    fixed = TRUE
+  )
+  expect_match(
+    rendered,
+    'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)',
+    fixed = TRUE
+  )
   expect_no_match(rendered, "dplyr::arrange", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
-  component$assign(x = "ADSL", value = data.frame(USUBJID = "U001", AGE = 30L, stringsAsFactors = FALSE))
+  component$assign(
+    x = "ADSL",
+    value = data.frame(
+      USUBJID = "U001",
+      AGE = 30L,
+      SEX = "M",
+      stringsAsFactors = FALSE
+    )
+  )
   component$assign(x = "cnt", value = mock_cnt)
   component$eval()
+  expect_equal(names(component$get("ADSL")), c("USUBJID", "AGE"))
 })
 
 test_that("write only: renders write with custom file extension and no sort or select", {
@@ -109,12 +167,20 @@ test_that("write only: renders write with custom file extension and no sort or s
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, 'cnt$adam$write_cnt(ADSL, tolower("ADSL.sas7bdat"), overwrite = TRUE)', fixed = TRUE)
+  expect_match(
+    rendered,
+    'cnt$adam$write_cnt(ADSL, tolower("ADSL.sas7bdat"), overwrite = TRUE)',
+    fixed = TRUE
+  )
   expect_no_match(rendered, "dplyr::arrange", fixed = TRUE)
   expect_no_match(rendered, "dplyr::select", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
-  component$assign(x = "ADSL", value = data.frame(USUBJID = "U001", stringsAsFactors = FALSE))
+  component$assign(
+    x = "ADSL",
+    value = data.frame(USUBJID = "U001", stringsAsFactors = FALSE)
+  )
   component$assign(x = "cnt", value = mock_cnt)
   component$eval()
+  expect_equal(names(component$get("ADSL")), "USUBJID")
 })
