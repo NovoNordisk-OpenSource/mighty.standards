@@ -103,6 +103,7 @@ mock_adsl <- data.frame(
   ARM = "A",
   STUDYID = "S001",
   USUBJID = "U001",
+  BMIBL = 42,
   stringsAsFactors = FALSE
 )
 mock_mdcol <- data.frame(PARAMCD = "ALT", stringsAsFactors = FALSE)
@@ -205,7 +206,10 @@ test_that("self domain: renders read without column selection for self, with sel
   component$eval()
   result_adsl <- component$get("ADSL")
   result_dm <- component$get("DM")
-  expect_equal(names(result_adsl), names(mock_adsl))
+  # Given that is_current_domain = TRUE,  keep vars of params_self_domain
+  # should be ignored. Instead it should keep all vars from the mock_adsl
+  # dataset, which includes BMIBL.
+  expect_true("BMIBL" %in% names(result_adsl))
   expect_equal(names(result_dm), c("ARM", "STUDYID", "USUBJID"))
 })
 
