@@ -299,6 +299,13 @@ test_that("bare R expression path: renders connector config without quoting", {
   )
 
   # COVERAGE -------------------------------------------------------------------
+  # $eval() is called solely for code coverage of the rendered template. Note
+  # that here::here("_connector.yml") is never actually evaluated at runtime:
+  # inject_connector_mock replaces connector::connect() with an anonymous
+  # function that takes `...` but never accesses its arguments, so R's lazy
+  # evaluation means the here::here() expression is never called. This is
+  # intentional — the correctness of the !expr -> here::here() transformation
+  # is tested in mighty (test-params_read_data_code.R), not here.
   inject_connector_mock(
     component,
     list(sdtm = list(read_cnt = function(x) mock_dm))
