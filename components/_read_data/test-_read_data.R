@@ -166,6 +166,7 @@ test_that("single SDTM domain: renders connector setup and read with column sele
     list(sdtm = list(read_cnt = function(x) mock_dm))
   )
   component$eval()
+  expect_equal(names(component$get("DM")), c("ARM", "STUDYID", "USUBJID"))
 })
 
 test_that("self domain: renders read without column selection for self, with selection for other", {
@@ -281,6 +282,7 @@ test_that("ADaM cross-domain: renders read via adam connector with column select
     list(adam = list(read_cnt = function(x) mock_adsl))
   )
   component$eval()
+  expect_equal(names(component$get("ADSL")), c("ARM", "USUBJID"))
 })
 
 test_that("bare R expression path: renders connector config without quoting", {
@@ -335,4 +337,5 @@ test_that("metadata domain: renders read via metadata connector with column sele
     list(metadata = list(read_cnt = function(x) mock_mdcol))
   )
   component$eval()
+  expect_equal(names(component$get("MDCOL")), "PARAMCD")
 })
