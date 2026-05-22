@@ -36,10 +36,30 @@ params_multi_key <- list(
 )
 
 # mocks ------------------------------------------------------------------------
-mock_adlb <- data.frame(USUBJID = "U001", PARAMCD = "ALT", stringsAsFactors = FALSE)
-mock_adlb_multi <- data.frame(STUDYID = "S001", USUBJID = "U001", PARAMCD = "ALT", stringsAsFactors = FALSE)
-mock_adsl <- data.frame(USUBJID = "U001", SEX = "M", ARMCD = "A", COUNTRY = "US", stringsAsFactors = FALSE)
-mock_adsl_multi <- data.frame(STUDYID = "S001", USUBJID = "U001", COUNTRY = "US", stringsAsFactors = FALSE)
+mock_adlb <- data.frame(
+  USUBJID = "U001",
+  PARAMCD = "ALT",
+  stringsAsFactors = FALSE
+)
+mock_adlb_multi <- data.frame(
+  STUDYID = "S001",
+  USUBJID = "U001",
+  PARAMCD = "ALT",
+  stringsAsFactors = FALSE
+)
+mock_adsl <- data.frame(
+  USUBJID = "U001",
+  SEX = "M",
+  ARMCD = "A",
+  COUNTRY = "US",
+  stringsAsFactors = FALSE
+)
+mock_adsl_multi <- data.frame(
+  STUDYID = "S001",
+  USUBJID = "U001",
+  COUNTRY = "US",
+  stringsAsFactors = FALSE
+)
 
 # tests ------------------------------------------------------------------------
 
@@ -53,14 +73,19 @@ test_that("no rename: renders left_join without trailing rename call", {
 
   # EXPECT ---------------------------------------------------------------------
   expect_match(rendered, "ADLB <- ADLB |>", fixed = TRUE)
-  expect_match(rendered, "dplyr::left_join(ADSL |> dplyr::select(USUBJID, SEX),", fixed = TRUE)
+  expect_match(
+    rendered,
+    "dplyr::left_join(ADSL |> dplyr::select(USUBJID, SEX),",
+    fixed = TRUE
+  )
   expect_match(rendered, 'by = c("USUBJID"))', fixed = TRUE)
   expect_no_match(rendered, "dplyr::rename", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
   component$assign(x = "ADLB", value = mock_adlb)
   component$assign(x = "ADSL", value = mock_adsl[, c("USUBJID", "SEX")])
-  component$eval()
+  result <- component$eval()$get("ADLB")
+  expect_true("SEX" %in% names(result))
 })
 
 test_that("with rename: renders left_join followed by rename call", {
@@ -72,13 +97,19 @@ test_that("with rename: renders left_join followed by rename call", {
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, "dplyr::left_join(ADSL |> dplyr::select(USUBJID, ARMCD),", fixed = TRUE)
+  expect_match(
+    rendered,
+    "dplyr::left_join(ADSL |> dplyr::select(USUBJID, ARMCD),",
+    fixed = TRUE
+  )
   expect_match(rendered, "dplyr::rename(TRTP = ARMCD)", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
   component$assign(x = "ADLB", value = mock_adlb)
   component$assign(x = "ADSL", value = mock_adsl[, c("USUBJID", "ARMCD")])
-  component$eval()
+  result <- component$eval()$get("ADLB")
+  expect_true("TRTP" %in% names(result))
+  expect_false("ARMCD" %in% names(result))
 })
 
 test_that("multi-key join: renders join with composite by_vars", {
@@ -90,12 +121,17 @@ test_that("multi-key join: renders join with composite by_vars", {
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, "dplyr::left_join(ADSL |> dplyr::select(STUDYID, USUBJID, COUNTRY),", fixed = TRUE)
+  expect_match(
+    rendered,
+    "dplyr::left_join(ADSL |> dplyr::select(STUDYID, USUBJID, COUNTRY),",
+    fixed = TRUE
+  )
   expect_match(rendered, 'by = c("STUDYID", "USUBJID"))', fixed = TRUE)
   expect_no_match(rendered, "dplyr::rename", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
   component$assign(x = "ADLB", value = mock_adlb_multi)
   component$assign(x = "ADSL", value = mock_adsl_multi)
-  component$eval()
+  result <- component$eval()$get("ADLB")
+  expect_true("COUNTRY" %in% names(result))
 })
