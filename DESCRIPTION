@@ -10,7 +10,6 @@ Imports:
     dplyr
 Suggests:
     covr,
-    dplyr,
     mighty.component (>= 0.0.0.9019),
     testthat (>= 3.0.0)
 Remotes: 

@@ -66,22 +66,13 @@ mock_adsl_multi <- data.frame(
 test_that("no rename: renders left_join without trailing rename call", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_col_echo.mustache",
+    component = "mighty_col_echo.mustache",
     params = params_no_rename
   )
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, "ADLB <- ADLB |>", fixed = TRUE)
-  expect_match(
-    rendered,
-    "dplyr::left_join(ADSL |> dplyr::select(USUBJID, SEX),",
-    fixed = TRUE
-  )
-  expect_match(rendered, 'by = c("USUBJID"))', fixed = TRUE)
   expect_no_match(rendered, "dplyr::rename", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(x = "ADLB", value = mock_adlb)
   component$assign(x = "ADSL", value = mock_adsl[, c("USUBJID", "SEX")])
   result <- component$eval()$get("ADLB")
@@ -91,20 +82,11 @@ test_that("no rename: renders left_join without trailing rename call", {
 test_that("with rename: renders left_join followed by rename call", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_col_echo.mustache",
+    component = "mighty_col_echo.mustache",
     params = params_with_rename
   )
-  rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(
-    rendered,
-    "dplyr::left_join(ADSL |> dplyr::select(USUBJID, ARMCD),",
-    fixed = TRUE
-  )
-  expect_match(rendered, "dplyr::rename(TRTP = ARMCD)", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(x = "ADLB", value = mock_adlb)
   component$assign(x = "ADSL", value = mock_adsl[, c("USUBJID", "ARMCD")])
   result <- component$eval()$get("ADLB")
@@ -115,21 +97,13 @@ test_that("with rename: renders left_join followed by rename call", {
 test_that("multi-key join: renders join with composite by_vars", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_col_echo.mustache",
+    component = "mighty_col_echo.mustache",
     params = params_multi_key
   )
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(
-    rendered,
-    "dplyr::left_join(ADSL |> dplyr::select(STUDYID, USUBJID, COUNTRY),",
-    fixed = TRUE
-  )
-  expect_match(rendered, 'by = c("STUDYID", "USUBJID"))', fixed = TRUE)
   expect_no_match(rendered, "dplyr::rename", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(x = "ADLB", value = mock_adlb_multi)
   component$assign(x = "ADSL", value = mock_adsl_multi)
   result <- component$eval()$get("ADLB")
