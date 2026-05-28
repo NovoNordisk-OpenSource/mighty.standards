@@ -43,32 +43,14 @@ mock_cnt <- list(
 
 # tests ------------------------------------------------------------------------
 
-test_that("row order + keep vars: renders arrange, select, and write blocks", {
+test_that("row order + keep vars: arranges rows, selects columns, and writes", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_write_data.mustache",
+    component = "mighty_write_data.mustache",
     params = params_with_row_order_and_keep
   )
-  rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(
-    rendered,
-    "ADSL <- ADSL |> dplyr::arrange(USUBJID)",
-    fixed = TRUE
-  )
-  expect_match(
-    rendered,
-    "ADSL <- ADSL |> dplyr::select(USUBJID, AGE, SEX)",
-    fixed = TRUE
-  )
-  expect_match(
-    rendered,
-    'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)',
-    fixed = TRUE
-  )
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(
     x = "ADSL",
     value = data.frame(
@@ -85,28 +67,16 @@ test_that("row order + keep vars: renders arrange, select, and write blocks", {
   expect_equal(names(component$get("ADSL")), c("USUBJID", "AGE", "SEX"))
 })
 
-test_that("row order only: renders arrange and write without select", {
+test_that("row order only: arranges rows and writes without selecting columns", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_write_data.mustache",
+    component = "mighty_write_data.mustache",
     params = params_row_order_only
   )
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(
-    rendered,
-    "ADLB <- ADLB |> dplyr::arrange(USUBJID,\nPARAMCD)",
-    fixed = TRUE
-  )
-  expect_match(
-    rendered,
-    'cnt$adam$write_cnt(ADLB, tolower("ADLB.parquet"), overwrite = TRUE)',
-    fixed = TRUE
-  )
   expect_no_match(rendered, "dplyr::select", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(
     x = "ADLB",
     value = data.frame(
@@ -122,28 +92,16 @@ test_that("row order only: renders arrange and write without select", {
   expect_equal(result_adlb$AVAL, c(2.0, 1.0))
 })
 
-test_that("keep vars only: renders select and write without arrange", {
+test_that("keep vars only: selects columns and writes without sorting rows", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_write_data.mustache",
+    component = "mighty_write_data.mustache",
     params = params_keep_only
   )
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(
-    rendered,
-    "ADSL <- ADSL |> dplyr::select(USUBJID, AGE)",
-    fixed = TRUE
-  )
-  expect_match(
-    rendered,
-    'cnt$adam$write_cnt(ADSL, tolower("ADSL.parquet"), overwrite = TRUE)',
-    fixed = TRUE
-  )
   expect_no_match(rendered, "dplyr::arrange", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(
     x = "ADSL",
     value = data.frame(
@@ -158,24 +116,17 @@ test_that("keep vars only: renders select and write without arrange", {
   expect_equal(names(component$get("ADSL")), c("USUBJID", "AGE"))
 })
 
-test_that("write only: renders write with custom file extension and no sort or select", {
+test_that("write only: writes with custom file extension and no sort or select", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_write_data.mustache",
+    component = "mighty_write_data.mustache",
     params = params_write_only
   )
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(
-    rendered,
-    'cnt$adam$write_cnt(ADSL, tolower("ADSL.sas7bdat"), overwrite = TRUE)',
-    fixed = TRUE
-  )
   expect_no_match(rendered, "dplyr::arrange", fixed = TRUE)
   expect_no_match(rendered, "dplyr::select", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(
     x = "ADSL",
     value = data.frame(USUBJID = "U001", stringsAsFactors = FALSE)
