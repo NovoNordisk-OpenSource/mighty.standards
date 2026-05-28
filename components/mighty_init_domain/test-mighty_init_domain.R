@@ -26,42 +26,34 @@ mock_xl <- data.frame(USUBJID = "U001", PARAMCD = "XLT", AVAL = 2.0, stringsAsFa
 
 # tests ------------------------------------------------------------------------
 
-test_that("single source domain: renders select and convert_blanks_to_na without src mutations", {
+test_that("single source domain: select and convert_blanks_to_na without src mutations", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_init_domain.mustache",
+    component = "mighty_init_domain.mustache",
     params = params_single_source
   )
   rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, "ADSL <-  DM |>", fixed = TRUE)
-  expect_match(rendered, "dplyr::select(USUBJID, AGE, SEX)", fixed = TRUE)
-  expect_match(rendered, "admiral::convert_blanks_to_na()", fixed = TRUE)
   expect_no_match(rendered, "dplyr::mutate(SRC_", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(x = "DM", value = mock_dm)
   component$eval()
+  expect_equal(names(component$get("ADSL")), c("USUBJID", "AGE", "SEX"))
 })
 
-test_that("multiple source domains with SRC_: renders per-domain mutate and rbind", {
+test_that("multiple source domains with SRC_: per-domain mutate and rbind", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_init_domain.mustache",
+    component = "mighty_init_domain.mustache",
     params = params_multi_source_with_src
   )
-  rendered <- paste(component$code, collapse = "\n")
 
   # EXPECT ---------------------------------------------------------------------
-  expect_match(rendered, 'LB <- LB |>\n  dplyr::mutate(SRC_ = "LB")', fixed = TRUE)
-  expect_match(rendered, 'XL <- XL |>\n  dplyr::mutate(SRC_ = "XL")', fixed = TRUE)
-  expect_match(rendered, "ADLB <-  rbind(LB,\nXL) |>", fixed = TRUE)
-  expect_match(rendered, "dplyr::select(USUBJID, PARAMCD, AVAL, SRC_)", fixed = TRUE)
-
-  # COVERAGE -------------------------------------------------------------------
   component$assign(x = "LB", value = mock_lb)
   component$assign(x = "XL", value = mock_xl)
   component$eval()
+  result <- component$get("ADLB")
+  expect_equal(nrow(result), 2L)
+  expect_true("SRC_" %in% names(result))
+  expect_equal(sort(result$SRC_), c("LB", "XL"))
 })
-
