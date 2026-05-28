@@ -2,8 +2,10 @@
 # vignette: https://novonordisk-opensource.github.io/mighty/articles/special_components.html
 
 # params -----------------------------------------------------------------------
+test_connector_path_expr <- '"test_study/_connector.yml"'
+
 params_single_sdtm_domain <- list(
-  connector_path_expr = '"_connector.yml"',
+  connector_path_expr = test_connector_path_expr,
   domains = list(
     list(
       is_current_domain = FALSE,
@@ -15,7 +17,7 @@ params_single_sdtm_domain <- list(
 )
 
 params_self_domain <- list(
-  connector_path_expr = '"_connector.yml"',
+  connector_path_expr = test_connector_path_expr,
   domains = list(
     list(
       is_current_domain = TRUE,
@@ -33,7 +35,7 @@ params_self_domain <- list(
 )
 
 params_multiple_sdtm_domains <- list(
-  connector_path_expr = '"_connector.yml"',
+  connector_path_expr = test_connector_path_expr,
   domains = list(
     list(
       is_current_domain = FALSE,
@@ -51,7 +53,7 @@ params_multiple_sdtm_domains <- list(
 )
 
 params_adam_cross_domain <- list(
-  connector_path_expr = '"_connector.yml"',
+  connector_path_expr = test_connector_path_expr,
   domains = list(
     list(
       is_current_domain = FALSE,
@@ -63,7 +65,7 @@ params_adam_cross_domain <- list(
 )
 
 params_expr_path <- list(
-  connector_path_expr = 'here::here("_connector.yml")',
+  connector_path_expr = 'here::here("test_study/_connector.yml")',
   domains = list(
     list(
       is_current_domain = FALSE,
@@ -75,7 +77,7 @@ params_expr_path <- list(
 )
 
 params_metadata_domain <- list(
-  connector_path_expr = '"_connector.yml"',
+  connector_path_expr = test_connector_path_expr,
   domains = list(
     list(
       is_current_domain = FALSE,
@@ -85,57 +87,6 @@ params_metadata_domain <- list(
     )
   )
 )
-
-# mocks ------------------------------------------------------------------------
-mock_dm <- data.frame(
-  ARM = "A",
-  STUDYID = "S001",
-  USUBJID = "U001",
-  stringsAsFactors = FALSE
-)
-mock_dm_vaccine <- data.frame(
-  ARM = "A",
-  STUDYID = "S001",
-  USUBJID = "U001",
-  stringsAsFactors = FALSE
-)
-mock_adsl <- data.frame(
-  ARM = "A",
-  STUDYID = "S001",
-  USUBJID = "U001",
-  BMIBL = 42,
-  stringsAsFactors = FALSE
-)
-mock_mdcol <- data.frame(PARAMCD = "ALT", stringsAsFactors = FALSE)
-
-# inject_connector_mock patches the component's test function inside the callr
-# session so that connector::connect() returns a mock object instead of
-# attempting a real connection. This is necessary because the connector package
-# is not available in CI and because unit tests should not depend on live data
-# infrastructure.
-#
-# In a live setting, connector::connect(config = <path>) reads a connector
-# configuration file and returns a connection object used to access SDTM, ADaM,
-# and metadata datasets. See the mighty vignette for details:
-# https://novonordisk-opensource.github.io/mighty/articles/connect_to_data.html
-inject_connector_mock <- function(component, mock_cnt) {
-  component$.__enclos_env__$private$.session$run(
-    func = function(mock) {
-      assign(".mock_cnt", mock, envir = globalenv())
-      unlockBinding(".test_fn", globalenv())
-      fn_str <- get(".test_fn", envir = globalenv())
-      fn_str <- sub(
-        "connector::connect(",
-        "(function(...) get('.mock_cnt', envir = globalenv()))(",
-        fn_str,
-        fixed = TRUE
-      )
-      assign(".test_fn", fn_str, envir = globalenv())
-      lockBinding(".test_fn", globalenv())
-    },
-    args = list(mock = mock_cnt)
-  )
-}
 
 # tests ------------------------------------------------------------------------
 
@@ -150,7 +101,7 @@ test_that("single SDTM domain: renders connector setup and read with column sele
   # EXPECT ---------------------------------------------------------------------
   expect_match(
     rendered,
-    'cnt <- connector::connect(config = "_connector.yml")',
+    'cnt <- connector::connect(config = "test_study/_connector.yml")',
     fixed = TRUE
   )
   expect_match(
@@ -161,10 +112,6 @@ test_that("single SDTM domain: renders connector setup and read with column sele
   expect_match(rendered, "dplyr::select(ARM, STUDYID, USUBJID)", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
-  inject_connector_mock(
-    component,
-    list(sdtm = list(read_cnt = function(x) mock_dm))
-  )
   component$eval()
   expect_equal(names(component$get("DM")), c("ARM", "STUDYID", "USUBJID"))
 })
@@ -197,17 +144,10 @@ test_that("self domain: renders read without column selection for self, with sel
   )
 
   # COVERAGE -------------------------------------------------------------------
-  inject_connector_mock(
-    component,
-    list(
-      adam = list(read_cnt = function(x) mock_adsl),
-      sdtm = list(read_cnt = function(x) mock_dm)
-    )
-  )
   component$eval()
   result_adsl <- component$get("ADSL")
   result_dm <- component$get("DM")
-  # Given that is_current_domain = TRUE,  keep vars of params_self_domain
+  # Given that is_current_domain = TRUE, keep vars of params_self_domain
   # should be ignored. Instead it should keep all vars from the mock_adsl
   # dataset, which includes BMIBL.
   expect_true("BMIBL" %in% names(result_adsl))
@@ -245,19 +185,9 @@ test_that("multiple SDTM domains: renders one read block per domain", {
   )
 
   # COVERAGE -------------------------------------------------------------------
-  inject_connector_mock(
-    component,
-    list(
-      sdtm = list(read_cnt = function(x) {
-        if (x == "dm") mock_dm else mock_dm_vaccine
-      })
-    )
-  )
   component$eval()
-  result_dm <- component$get("DM")
-  result_dm_vaccine <- component$get("DM_VACCINE")
-  expect_equal(names(result_dm), c("ARM", "STUDYID", "USUBJID"))
-  expect_equal(names(result_dm_vaccine), c("ARM", "STUDYID", "USUBJID"))
+  expect_equal(names(component$get("DM")), c("ARM", "STUDYID", "USUBJID"))
+  expect_equal(names(component$get("DM_VACCINE")), c("ARM", "STUDYID", "USUBJID"))
 })
 
 test_that("ADaM cross-domain: renders read via adam connector with column selection", {
@@ -277,10 +207,6 @@ test_that("ADaM cross-domain: renders read via adam connector with column select
   expect_match(rendered, "dplyr::select(ARM, USUBJID)", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
-  inject_connector_mock(
-    component,
-    list(adam = list(read_cnt = function(x) mock_adsl))
-  )
   component$eval()
   expect_equal(names(component$get("ADSL")), c("ARM", "USUBJID"))
 })
@@ -296,22 +222,26 @@ test_that("bare R expression path: renders connector config without quoting", {
   # EXPECT ---------------------------------------------------------------------
   expect_match(
     rendered,
-    'cnt <- connector::connect(config = here::here("_connector.yml"))',
+    'cnt <- connector::connect(config = here::here("test_study/_connector.yml"))',
     fixed = TRUE
   )
 
   # COVERAGE -------------------------------------------------------------------
-  # $eval() is called solely for code coverage of the rendered template. Note
-  # that here::here("_connector.yml") is never actually evaluated at runtime:
-  # inject_connector_mock replaces connector::connect() with an anonymous
-  # function that takes `...` but never accesses its arguments, so R's lazy
-  # evaluation means the here::here() expression is never called. This is
-  # intentional — the correctness of the !expr -> here::here() transformation
-  # is tested in mighty (test-params_read_data_code.R), not here.
-  inject_connector_mock(
-    component,
-    list(sdtm = list(read_cnt = function(x) mock_dm))
-  )
+  # here::here() resolves to the repo root in the callr session, not the
+  # component folder. Patch the rendered code to use a literal path so $eval()
+  # can exercise all template lines without depending on here's project-root logic.
+  component$.__enclos_env__$private$.session$run(function() {
+    unlockBinding(".test_fn", globalenv())
+    fn_str <- get(".test_fn", envir = globalenv())
+    fn_str <- sub(
+      'here::here("test_study/_connector.yml")',
+      '"test_study/_connector.yml"',
+      fn_str,
+      fixed = TRUE
+    )
+    assign(".test_fn", fn_str, envir = globalenv())
+    lockBinding(".test_fn", globalenv())
+  })
   component$eval()
 })
 
@@ -332,10 +262,6 @@ test_that("metadata domain: renders read via metadata connector with column sele
   expect_match(rendered, "dplyr::select(PARAMCD)", fixed = TRUE)
 
   # COVERAGE -------------------------------------------------------------------
-  inject_connector_mock(
-    component,
-    list(metadata = list(read_cnt = function(x) mock_mdcol))
-  )
   component$eval()
   expect_equal(names(component$get("MDCOL")), "PARAMCD")
 })
