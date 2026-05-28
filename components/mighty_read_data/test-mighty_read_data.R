@@ -93,7 +93,7 @@ params_metadata_domain <- list(
 test_that("single SDTM domain: renders connector setup and read with column selection", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_read_data.mustache",
+    component = "mighty_read_data.mustache",
     params = params_single_sdtm_domain
   )
   rendered <- paste(component$code, collapse = "\n")
@@ -106,7 +106,7 @@ test_that("single SDTM domain: renders connector setup and read with column sele
   )
   expect_match(
     rendered,
-    "DM <-  cnt$sdtm$read_cnt(tolower('DM'))",
+    "DM <- cnt$sdtm$read_cnt(tolower('DM'))",
     fixed = TRUE
   )
   expect_match(rendered, "dplyr::select(ARM, STUDYID, USUBJID)", fixed = TRUE)
@@ -119,7 +119,7 @@ test_that("single SDTM domain: renders connector setup and read with column sele
 test_that("self domain: renders read without column selection for self, with selection for other", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_read_data.mustache",
+    component = "mighty_read_data.mustache",
     params = params_self_domain
   )
   rendered <- paste(component$code, collapse = "\n")
@@ -127,12 +127,12 @@ test_that("self domain: renders read without column selection for self, with sel
   # EXPECT ---------------------------------------------------------------------
   expect_match(
     rendered,
-    "ADSL <-  cnt$adam$read_cnt(tolower('ADSL'))",
+    "ADSL <- cnt$adam$read_cnt(tolower('ADSL'))",
     fixed = TRUE
   )
   expect_match(
     rendered,
-    "DM <-  cnt$sdtm$read_cnt(tolower('DM'))",
+    "DM <- cnt$sdtm$read_cnt(tolower('DM'))",
     fixed = TRUE
   )
   expect_match(rendered, "dplyr::select(ARM, STUDYID, USUBJID)", fixed = TRUE)
@@ -157,7 +157,7 @@ test_that("self domain: renders read without column selection for self, with sel
 test_that("multiple SDTM domains: renders one read block per domain", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_read_data.mustache",
+    component = "mighty_read_data.mustache",
     params = params_multiple_sdtm_domains
   )
   rendered <- paste(component$code, collapse = "\n")
@@ -165,12 +165,12 @@ test_that("multiple SDTM domains: renders one read block per domain", {
   # EXPECT ---------------------------------------------------------------------
   expect_match(
     rendered,
-    "DM <-  cnt$sdtm$read_cnt(tolower('DM'))",
+    "DM <- cnt$sdtm$read_cnt(tolower('DM'))",
     fixed = TRUE
   )
   expect_match(
     rendered,
-    "DM_VACCINE <-  cnt$sdtm$read_cnt(tolower('DM_VACCINE'))",
+    "DM_VACCINE <- cnt$sdtm$read_cnt(tolower('DM_VACCINE'))",
     fixed = TRUE
   )
   # both domains select the same columns so they can be row-bound in _init_domain
@@ -193,7 +193,7 @@ test_that("multiple SDTM domains: renders one read block per domain", {
 test_that("ADaM cross-domain: renders read via adam connector with column selection", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_read_data.mustache",
+    component = "mighty_read_data.mustache",
     params = params_adam_cross_domain
   )
   rendered <- paste(component$code, collapse = "\n")
@@ -201,7 +201,7 @@ test_that("ADaM cross-domain: renders read via adam connector with column select
   # EXPECT ---------------------------------------------------------------------
   expect_match(
     rendered,
-    "ADSL <-  cnt$adam$read_cnt(tolower('ADSL'))",
+    "ADSL <- cnt$adam$read_cnt(tolower('ADSL'))",
     fixed = TRUE
   )
   expect_match(rendered, "dplyr::select(ARM, USUBJID)", fixed = TRUE)
@@ -214,7 +214,7 @@ test_that("ADaM cross-domain: renders read via adam connector with column select
 test_that("bare R expression path: renders connector config without quoting", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_read_data.mustache",
+    component = "mighty_read_data.mustache",
     params = params_expr_path
   )
   rendered <- paste(component$code, collapse = "\n")
@@ -248,7 +248,7 @@ test_that("bare R expression path: renders connector config without quoting", {
 test_that("metadata domain: renders read via metadata connector with column selection", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
-    component = "_read_data.mustache",
+    component = "mighty_read_data.mustache",
     params = params_metadata_domain
   )
   rendered <- paste(component$code, collapse = "\n")
@@ -256,7 +256,7 @@ test_that("metadata domain: renders read via metadata connector with column sele
   # EXPECT ---------------------------------------------------------------------
   expect_match(
     rendered,
-    "MDCOL <-  cnt$metadata$read_cnt(tolower('MDCOL'))",
+    "MDCOL <- cnt$metadata$read_cnt(tolower('MDCOL'))",
     fixed = TRUE
   )
   expect_match(rendered, "dplyr::select(PARAMCD)", fixed = TRUE)
