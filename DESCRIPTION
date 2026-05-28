@@ -1,13 +1,14 @@
 Package: mighty.standards
 Title: Standard Components for the Mighty Framework
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Description: Standard components for the mighty framework.
 License: Apache License (>= 2)
 Encoding: UTF-8
 Imports:
     admiral,
     connector,
-    dplyr
+    dplyr,
+    pharmaversesdtm
 Suggests:
     covr,
     mighty.component (>= 0.0.0.9019),

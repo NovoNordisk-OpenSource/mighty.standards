@@ -1,0 +1,13 @@
+datasources:
+  - name: "sdtm"
+    backend:
+      type: "connector_fs"
+      path: "test_study/sdtm"
+  - name: "adam"
+    backend:
+      type: "connector_fs"
+      path: "test_study/adam"
+  - name: "metadata"
+    backend:
+      type: "connector_fs"
+      path: "test_study/metadata"
