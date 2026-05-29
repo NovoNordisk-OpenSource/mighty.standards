@@ -35,31 +35,19 @@ params_multi_key <- list(
   var_to_add = "COUNTRY"
 )
 
-# mocks ------------------------------------------------------------------------
-mock_adlb <- data.frame(
-  USUBJID = "U001",
-  PARAMCD = "ALT",
-  stringsAsFactors = FALSE
-)
-mock_adlb_multi <- data.frame(
-  STUDYID = "S001",
-  USUBJID = "U001",
-  PARAMCD = "ALT",
-  stringsAsFactors = FALSE
-)
-mock_adsl <- data.frame(
-  USUBJID = "U001",
-  SEX = "M",
-  ARMCD = "A",
-  COUNTRY = "US",
-  stringsAsFactors = FALSE
-)
-mock_adsl_multi <- data.frame(
-  STUDYID = "S001",
-  USUBJID = "U001",
-  COUNTRY = "US",
-  stringsAsFactors = FALSE
-)
+# data -------------------------------------------------------------------------
+test_subjects <- c("01-701-1015", "01-701-1023", "01-701-1028")
+
+adlb <- pharmaversesdtm::lb[
+  pharmaversesdtm::lb$LBTESTCD == "ALT" &
+    pharmaversesdtm::lb$USUBJID %in% test_subjects,
+  c("STUDYID", "USUBJID", "LBTESTCD", "LBSTRESN")
+]
+
+adsl <- pharmaversesdtm::dm[
+  pharmaversesdtm::dm$USUBJID %in% test_subjects,
+  c("STUDYID", "USUBJID", "SEX", "ARMCD", "COUNTRY")
+]
 
 # tests ------------------------------------------------------------------------
 
@@ -73,8 +61,8 @@ test_that("no rename: renders left_join without trailing rename call", {
 
   # EXPECT ---------------------------------------------------------------------
   expect_no_match(rendered, "dplyr::rename", fixed = TRUE)
-  component$assign(x = "ADLB", value = mock_adlb)
-  component$assign(x = "ADSL", value = mock_adsl[, c("USUBJID", "SEX")])
+  component$assign(x = "ADLB", value = adlb)
+  component$assign(x = "ADSL", value = adsl[, c("USUBJID", "SEX")])
   result <- component$eval()$get("ADLB")
   expect_true("SEX" %in% names(result))
 })
@@ -87,8 +75,8 @@ test_that("with rename: renders left_join followed by rename call", {
   )
 
   # EXPECT ---------------------------------------------------------------------
-  component$assign(x = "ADLB", value = mock_adlb)
-  component$assign(x = "ADSL", value = mock_adsl[, c("USUBJID", "ARMCD")])
+  component$assign(x = "ADLB", value = adlb)
+  component$assign(x = "ADSL", value = adsl[, c("USUBJID", "ARMCD")])
   result <- component$eval()$get("ADLB")
   expect_true("TRTP" %in% names(result))
   expect_false("ARMCD" %in% names(result))
@@ -104,8 +92,8 @@ test_that("multi-key join: renders join with composite by_vars", {
 
   # EXPECT ---------------------------------------------------------------------
   expect_no_match(rendered, "dplyr::rename", fixed = TRUE)
-  component$assign(x = "ADLB", value = mock_adlb_multi)
-  component$assign(x = "ADSL", value = mock_adsl_multi)
+  component$assign(x = "ADLB", value = adlb)
+  component$assign(x = "ADSL", value = adsl[, c("STUDYID", "USUBJID", "COUNTRY")])
   result <- component$eval()$get("ADLB")
   expect_true("COUNTRY" %in% names(result))
 })
