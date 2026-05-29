@@ -6,7 +6,7 @@ params_with_row_order_and_keep <- list(
   self = "ADSL",
   file_ext = "parquet",
   row_order_vars = "USUBJID",
-  keep_vars = "USUBJID, AGE, SEX"
+  keep_vars = "USUBJID,\nAGE,\nSEX"
 )
 
 params_row_order_only <- list(
@@ -20,7 +20,7 @@ params_keep_only <- list(
   self = "ADSL",
   file_ext = "parquet",
   row_order_vars = NULL,
-  keep_vars = "USUBJID, AGE"
+  keep_vars = "USUBJID,\nAGE"
 )
 
 params_write_only <- list(
