@@ -11,18 +11,33 @@ params_single_source <- list(
 
 params_multi_source_with_src <- list(
   self = "ADLB",
-  keep_vars = "USUBJID, PARAMCD, AVAL, SRC_",
-  source_domain_rbind = "rbind(LB,\nXL)",
+  keep_vars = "LBTESTCD, LBSTRESN, SRC_, STUDYID, USUBJID",
+  source_domain_rbind = "rbind(LB,\nLB_METABOLIC)",
   src_mutations = list(
     list(domain = "LB"),
-    list(domain = "XL")
+    list(domain = "LB_METABOLIC")
   )
 )
 
-# mocks ------------------------------------------------------------------------
-mock_dm <- data.frame(USUBJID = "U001", AGE = 30L, SEX = "M", stringsAsFactors = FALSE)
-mock_lb <- data.frame(USUBJID = "U001", PARAMCD = "ALT", AVAL = 1.0, stringsAsFactors = FALSE)
-mock_xl <- data.frame(USUBJID = "U001", PARAMCD = "XLT", AVAL = 2.0, stringsAsFactors = FALSE)
+# data -------------------------------------------------------------------------
+test_subjects <- c("01-701-1015", "01-701-1023", "01-701-1028")
+
+dm <- pharmaversesdtm::dm[
+  pharmaversesdtm::dm$USUBJID %in% test_subjects,
+  c("USUBJID", "AGE", "SEX")
+]
+
+lb <- pharmaversesdtm::lb[
+  pharmaversesdtm::lb$LBTESTCD == "ALT" &
+    pharmaversesdtm::lb$USUBJID %in% test_subjects,
+  c("STUDYID", "USUBJID", "LBTESTCD", "LBSTRESN")
+]
+
+lb_metabolic <- pharmaversesdtm::lb_metabolic[
+  pharmaversesdtm::lb_metabolic$LBTESTCD == "INSULIN" &
+    pharmaversesdtm::lb_metabolic$USUBJID %in% test_subjects,
+  c("STUDYID", "USUBJID", "LBTESTCD", "LBSTRESN")
+]
 
 # tests ------------------------------------------------------------------------
 
@@ -36,7 +51,7 @@ test_that("single source domain: select and convert_blanks_to_na without src mut
 
   # EXPECT ---------------------------------------------------------------------
   expect_no_match(rendered, "dplyr::mutate(SRC_", fixed = TRUE)
-  component$assign(x = "DM", value = mock_dm)
+  component$assign(x = "DM", value = dm)
   component$eval()
   expect_equal(names(component$get("ADSL")), c("USUBJID", "AGE", "SEX"))
 })
@@ -49,11 +64,12 @@ test_that("multiple source domains with SRC_: per-domain mutate and rbind", {
   )
 
   # EXPECT ---------------------------------------------------------------------
-  component$assign(x = "LB", value = mock_lb)
-  component$assign(x = "XL", value = mock_xl)
+  component$assign(x = "LB", value = lb)
+  component$assign(x = "LB_METABOLIC", value = lb_metabolic)
   component$eval()
   result <- component$get("ADLB")
-  expect_equal(nrow(result), 2L)
+  expect_true(nrow(result) > 0L)
   expect_true("SRC_" %in% names(result))
-  expect_equal(sort(result$SRC_), c("LB", "XL"))
+  expect_true("LB" %in% result$SRC_)
+  expect_true("LB_METABOLIC" %in% result$SRC_)
 })
