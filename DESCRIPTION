@@ -13,4 +13,4 @@ Suggests:
     mighty.component (>= 0.0.0.9019),
     testthat (>= 3.0.0)
 Remotes: 
-    novonordisk-opensource/mighty.component
+    novonordisk-opensource/mighty.component@feat/use-component-repos

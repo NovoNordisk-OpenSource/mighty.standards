@@ -55,6 +55,9 @@ test_that("no rename: renders left_join without trailing rename call", {
   # SETUP ----------------------------------------------------------------------
   component <- mighty.component::get_test_component(
     component = "mighty_col_echo.mustache",
+    repos = c(
+      "NovoNordisk-OpenSource/mighty.standards/components/mighty_col_echo/@dev/internal-components"
+    ), #".", "components/mighty_col_echo"),
     params = params_no_rename
   )
   rendered <- paste(component$code, collapse = "\n")
@@ -93,7 +96,10 @@ test_that("multi-key join: renders join with composite by_vars", {
   # EXPECT ---------------------------------------------------------------------
   expect_no_match(rendered, "dplyr::rename", fixed = TRUE)
   component$assign(x = "ADLB", value = adlb)
-  component$assign(x = "ADSL", value = adsl[, c("STUDYID", "USUBJID", "COUNTRY")])
+  component$assign(
+    x = "ADSL",
+    value = adsl[, c("STUDYID", "USUBJID", "COUNTRY")]
+  )
   result <- component$eval()$get("ADLB")
   expect_true("COUNTRY" %in% names(result))
 })
