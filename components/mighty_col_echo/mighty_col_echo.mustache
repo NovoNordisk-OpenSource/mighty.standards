@@ -3,6 +3,8 @@
 #'   via a `dplyr::left_join()`. Used when `method:` in the YAML specification
 #'   uses dot notation (e.g. `ADSL.SEX`) to reference a cross-domain variable.
 #' @type internal
+#' @origin Not applicable
+#' @method Not applicable
 #' @param self Character string. Name of the primary dataset being modified; the left-hand side of the join, whose row count is preserved (e.g. `"ADLB"`).
 #' @param join_dataset Character string. Name of the dataset to look up from; the right-hand side of the join (e.g. `"ADSL"`).
 #' @param select_expr Character string. Comma-separated column names to select from `join_dataset` before joining. Includes both join keys and the variable being added.
