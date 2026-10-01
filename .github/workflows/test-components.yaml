@@ -43,14 +43,14 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - uses: r-lib/actions/setup-r@465b7d8e732ca3921382b1674c59bada9cbf3399 # v2.13.0
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: ${{ !matrix.config.cran-date }}
           cran: ${{ matrix.config.cran-date && format('https://packagemanager.posit.co/cran/{0}', matrix.config.cran-date) || '' }}
           extra-repositories: ${{ matrix.config.cran-date && 'https://novonordisk-opensource.r-universe.dev' || '' }}
-      - uses: r-lib/actions/setup-r-dependencies@465b7d8e732ca3921382b1674c59bada9cbf3399 # v2.13.0
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
       - name: Run component tests
         run: |
           dirs <- list.dirs("components", recursive = FALSE)
