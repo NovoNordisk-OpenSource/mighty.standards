@@ -12,21 +12,17 @@ test_that("no rename: matches lookup data and keeps self row count", {
     )
   )
 
-  comp$assign(
-    "adlb",
-    data.frame(
-      USUBJID = c("01", "01", "02"),
-      PARAM = c("ALT", "AST", "ALT")
-    )
+  adlb <- data.frame(
+    USUBJID = c("01", "01", "02"),
+    PARAM = c("ALT", "AST", "ALT")
   )
-  comp$assign(
-    "adsl",
-    data.frame(
-      USUBJID = c("01", "03"),
-      SEX = c("F", "M"),
-      IGNORED_COL = c("X", "Y")
-    )
+  adsl <- data.frame(
+    USUBJID = c("01", "03"),
+    SEX = c("F", "M"),
+    IGNORED_COL = c("X", "Y")
   )
+  comp$assign("adlb", adlb)
+  comp$assign("adsl", adsl)
 
   comp$eval()
 
@@ -54,19 +50,15 @@ test_that("rename: output_var is added and var_to_add is absent in result", {
     )
   )
 
-  comp$assign(
-    "adlb",
-    data.frame(
-      USUBJID = c("01", "02")
-    )
+  adlb <- data.frame(
+    USUBJID = c("01", "02")
   )
-  comp$assign(
-    "adsl",
-    data.frame(
-      USUBJID = c("01", "02"),
-      SEX = c("F", "M")
-    )
+  adsl <- data.frame(
+    USUBJID = c("01", "02"),
+    SEX = c("F", "M")
   )
+  comp$assign("adlb", adlb)
+  comp$assign("adsl", adsl)
 
   comp$eval()
 
@@ -93,21 +85,17 @@ test_that("two join keys: unmatched rows on second key receive NA", {
     )
   )
 
-  comp$assign(
-    "adlb",
-    data.frame(
-      STUDYID = c("STUDY1", "STUDY2"),
-      USUBJID = c("01", "01")
-    )
+  adlb <- data.frame(
+    STUDYID = c("STUDY1", "STUDY2"),
+    USUBJID = c("01", "01")
   )
-  comp$assign(
-    "adsl",
-    data.frame(
-      STUDYID = c("STUDY1"),
-      USUBJID = c("01"),
-      SEX = c("F")
-    )
+  adsl <- data.frame(
+    STUDYID = c("STUDY1"),
+    USUBJID = c("01"),
+    SEX = c("F")
   )
+  comp$assign("adlb", adlb)
+  comp$assign("adsl", adsl)
 
   comp$eval()
 
@@ -136,19 +124,15 @@ test_that("duplicate key in join_dataset raises many-to-one error", {
     check_coverage = FALSE
   )
 
-  comp$assign(
-    "adlb",
-    data.frame(
-      USUBJID = c("01")
-    )
+  adlb <- data.frame(
+    USUBJID = c("01")
   )
-  comp$assign(
-    "adsl",
-    data.frame(
-      USUBJID = c("01", "01"),
-      SEX = c("F", "M")
-    )
+  adsl <- data.frame(
+    USUBJID = c("01", "01"),
+    SEX = c("F", "M")
   )
+  comp$assign("adlb", adlb)
+  comp$assign("adsl", adsl)
 
   expect_error(
     comp$eval(),
@@ -170,20 +154,16 @@ test_that("rename when self already contains var_to_add keeps existing column", 
     )
   )
 
-  comp$assign(
-    "adlb",
-    data.frame(
-      USUBJID = c("01", "02"),
-      SEX = c("ORIGINAL_1", "ORIGINAL_2")
-    )
+  adlb <- data.frame(
+    USUBJID = c("01", "02"),
+    SEX = c("ORIGINAL_1", "ORIGINAL_2")
   )
-  comp$assign(
-    "adsl",
-    data.frame(
-      USUBJID = c("01", "02"),
-      SEX = c("F", "M")
-    )
+  adsl <- data.frame(
+    USUBJID = c("01", "02"),
+    SEX = c("F", "M")
   )
+  comp$assign("adlb", adlb)
+  comp$assign("adsl", adsl)
 
   comp$eval()
 
