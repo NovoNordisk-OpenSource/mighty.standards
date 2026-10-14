@@ -14,6 +14,10 @@
 #' @param var_to_add Character string. Column name as it exists in `join_dataset`, before any renaming. Equal to `output_var` when `needs_rename` is `FALSE`.
 #' @code
 {{{self}}} <- {{{self}}} |>
-    dplyr::left_join({{{join_dataset}}} |> dplyr::select({{{select_expr}}}){{#needs_rename}} |>
-                     dplyr::rename({{{output_var}}} = {{{var_to_add}}}){{/needs_rename}},
-by = c({{{by_vars}}}), relationship = "many-to-one")
+  dplyr::left_join(
+    {{{join_dataset}}} |>
+      dplyr::select({{{select_expr}}}){{#needs_rename}} |>
+      dplyr::rename({{{output_var}}} = {{{var_to_add}}}){{/needs_rename}},
+    by = c({{{by_vars}}}),
+    relationship = "many-to-one"
+  )
