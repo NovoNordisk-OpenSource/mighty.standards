@@ -5,8 +5,8 @@
 #' @type internal
 #' @origin Not Available
 #' @method Not applicable
-#' @param self Character string. Name of the dataset being modified (e.g. `"ADLB"`).
+#' @param domain Character string. Name of the dataset being modified (e.g. `"ADLB"`).
 #' @param rename_var Character string. Name of the new column to create (e.g. `"AVAL"`).
 #' @param source_var Character string. Name of the existing column to copy from (e.g. `"LBSTRESN"`).
 #' @code
-{{{self}}} <- {{{self}}} |> dplyr::mutate({{{rename_var}}} = {{{source_var}}})
+{{{domain}}} <- {{{domain}}} |> dplyr::mutate({{{rename_var}}} = {{{source_var}}})
