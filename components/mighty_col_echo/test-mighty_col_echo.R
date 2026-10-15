@@ -1,8 +1,8 @@
-test_that("no rename: matches lookup data and keeps self row count", {
+test_that("no rename: matches lookup data and keeps domain row count", {
   comp <- mighty.component::get_test_component(
     component = "mighty_col_echo.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       join_dataset = "adsl",
       select_expr = "USUBJID, SEX",
       by_vars = "\"USUBJID\"",
@@ -40,7 +40,7 @@ test_that("rename: output_var is added and var_to_add is absent in result", {
   comp <- mighty.component::get_test_component(
     component = "mighty_col_echo.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       join_dataset = "adsl",
       select_expr = "USUBJID, SEX",
       by_vars = "\"USUBJID\"",
@@ -75,7 +75,7 @@ test_that("two join keys: unmatched rows on second key receive NA", {
   comp <- mighty.component::get_test_component(
     component = "mighty_col_echo.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       join_dataset = "adsl",
       select_expr = "STUDYID, USUBJID, SEX",
       by_vars = "\"STUDYID\", \"USUBJID\"",
@@ -113,7 +113,7 @@ test_that("duplicate key in join_dataset raises many-to-one error", {
   comp <- mighty.component::get_test_component(
     component = "mighty_col_echo.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       join_dataset = "adsl",
       select_expr = "USUBJID, SEX",
       by_vars = "\"USUBJID\"",
@@ -140,11 +140,11 @@ test_that("duplicate key in join_dataset raises many-to-one error", {
   )
 })
 
-test_that("rename when self already contains var_to_add keeps existing column", {
+test_that("rename when domain already contains var_to_add keeps existing column", {
   comp <- mighty.component::get_test_component(
     component = "mighty_col_echo.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       join_dataset = "adsl",
       select_expr = "USUBJID, SEX",
       by_vars = "\"USUBJID\"",
