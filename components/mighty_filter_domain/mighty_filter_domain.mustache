@@ -7,7 +7,8 @@
 #' @method Not applicable
 #' @param domain Character string. Name of the ADaM domain being filtered (e.g. `"ADLB"`).
 #' @param joins List of join specifications used to bring in columns required for
-#'   filter evaluation. Each element is a list containing:
+#'   filter evaluation. Each join is a `dplyr::left_join()` that keeps the row count of `domain`. The join stops with
+#'   an error when a row in `domain` matches more than one row in the join dataset. Each element is a list containing:
 #'   \describe{
 #'     \item{table}{Character string. Name of the dataset to join with.}
 #'     \item{select_expr}{Character string. Comma-separated column names to select from the join dataset.}
@@ -21,7 +22,8 @@
 {{#joins}}
 {{{domain}}} <- {{{domain}}} |>
   dplyr::left_join({{{table}}} |> dplyr::select({{{select_expr}}}),
-                   by = c({{{keys}}}))
+                   by = c({{{keys}}}),
+                   relationship = "many-to-one")
 
 {{/joins}}
 {{#domain_filter}}
