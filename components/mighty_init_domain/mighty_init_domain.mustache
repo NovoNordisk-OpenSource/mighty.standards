@@ -5,16 +5,16 @@
 #' @type internal
 #' @origin Not Available
 #' @method Not applicable
-#' @param self Character string. Name of the ADaM domain being initialised (e.g. `"ADSL"`, `"ADLB"`).
+#' @param domain Character string. Name of the ADaM domain being initialised (e.g. `"ADSL"`, `"ADLB"`).
 #' @param keep_vars Character string. Comma-separated column names to select after row binding.
 #' @param source_domain_rbind Character string. Pre-formatted R expression that combines source datasets. A single domain is passed as its name; multiple domains are wrapped in `rbind()`.
-#' @param src_mutations List of lists. Per-domain mutation specifications used to add a `SRC_` tracking column before row binding. Each element has a single field `domain` (e.g. `list(list(domain = "LB"), list(domain = "XL"))`). Empty list when `SRC_` is not needed.
+#' @param src_mutations List of lists. Per-domain mutation specifications used to add a `SRC_` tracking column before row binding. Each element has a single field `source_domain` (e.g. `list(list(source_domain = "LB"), list(source_domain = "XL"))`). Empty list when `SRC_` is not needed.
 #' @code
 {{#src_mutations}}
-{{{domain}}} <- {{{domain}}} |>
-  dplyr::mutate(SRC_ = "{{{domain}}}")
+{{{source_domain}}} <- {{{source_domain}}} |>
+  dplyr::mutate(SRC_ = "{{{source_domain}}}")
 
 {{/src_mutations}}
-{{{self}}} <- {{{source_domain_rbind}}} |>
+{{{domain}}} <- {{{source_domain_rbind}}} |>
     dplyr::select({{{keep_vars}}}) |>
     admiral::convert_blanks_to_na()

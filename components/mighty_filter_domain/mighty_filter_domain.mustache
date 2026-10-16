@@ -5,7 +5,7 @@
 #' @type internal
 #' @origin Not Available
 #' @method Not applicable
-#' @param self Character string. Name of the ADaM domain being filtered (e.g. `"ADLB"`).
+#' @param domain Character string. Name of the ADaM domain being filtered (e.g. `"ADLB"`).
 #' @param joins List of join specifications used to bring in columns required for
 #'   filter evaluation. Each element is a list containing:
 #'   \describe{
@@ -19,24 +19,24 @@
 #' @param keep_vars Character string or `NULL`. Comma-separated column names to retain. `NULL` when no selection is needed — the select block is skipped. `SRC_` is excluded automatically.
 #' @code
 {{#joins}}
-{{{self}}} <- {{{self}}} |>
+{{{domain}}} <- {{{domain}}} |>
   dplyr::left_join({{{table}}} |> dplyr::select({{{select_expr}}}),
                    by = c({{{keys}}}))
 
 {{/joins}}
 {{#domain_filter}}
-{{{self}}} <- {{{self}}} |>
+{{{domain}}} <- {{{domain}}} |>
   dplyr::filter({{{domain_filter}}}) |>
   dplyr::select(-SRC_)
 
 {{/domain_filter}}
 {{#global_filter}}
-{{{self}}} <- {{{self}}} |>
+{{{domain}}} <- {{{domain}}} |>
   dplyr::filter({{{global_filter}}})
 
 {{/global_filter}}
 {{#keep_vars}}
-{{{self}}} <- {{{self}}} |>
+{{{domain}}} <- {{{domain}}} |>
   dplyr::select({{{keep_vars}}})
 
 {{/keep_vars}}
