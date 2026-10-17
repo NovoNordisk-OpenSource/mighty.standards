@@ -11,6 +11,7 @@ Imports:
 Suggests:
     covr,
     mighty.component (>= 0.0.0.9019),
+    pharmaversesdtm,
     testthat (>= 3.0.0)
 Remotes: 
     novonordisk-opensource/mighty.component
