@@ -4,8 +4,8 @@ test_that("no rename: matches lookup data and keeps domain row count", {
     params = list(
       domain = "adlb",
       join_dataset = "adsl",
-      select_expr = "USUBJID, SEX",
-      by_vars = "\"USUBJID\"",
+      select_expr = c("USUBJID", "SEX"),
+      by_vars = "USUBJID",
       needs_rename = FALSE,
       output_var = "SEX",
       var_to_add = "SEX"
@@ -42,8 +42,8 @@ test_that("rename: output_var is added and var_to_add is absent in result", {
     params = list(
       domain = "adlb",
       join_dataset = "adsl",
-      select_expr = "USUBJID, SEX",
-      by_vars = "\"USUBJID\"",
+      select_expr = c("USUBJID", "SEX"),
+      by_vars = "USUBJID",
       needs_rename = TRUE,
       output_var = "GENDER",
       var_to_add = "SEX"
@@ -77,8 +77,8 @@ test_that("two join keys: unmatched rows on second key receive NA", {
     params = list(
       domain = "adlb",
       join_dataset = "adsl",
-      select_expr = "STUDYID, USUBJID, SEX",
-      by_vars = "\"STUDYID\", \"USUBJID\"",
+      select_expr = c("STUDYID", "USUBJID", "SEX"),
+      by_vars = c("STUDYID", "USUBJID"),
       needs_rename = FALSE,
       output_var = "SEX",
       var_to_add = "SEX"
@@ -115,8 +115,8 @@ test_that("duplicate key in join_dataset raises many-to-one error", {
     params = list(
       domain = "adlb",
       join_dataset = "adsl",
-      select_expr = "USUBJID, SEX",
-      by_vars = "\"USUBJID\"",
+      select_expr = c("USUBJID", "SEX"),
+      by_vars = "USUBJID",
       needs_rename = FALSE,
       output_var = "SEX",
       var_to_add = "SEX"
@@ -146,8 +146,8 @@ test_that("rename when domain already contains var_to_add keeps existing column"
     params = list(
       domain = "adlb",
       join_dataset = "adsl",
-      select_expr = "USUBJID, SEX",
-      by_vars = "\"USUBJID\"",
+      select_expr = c("USUBJID", "SEX"),
+      by_vars = "USUBJID",
       needs_rename = TRUE,
       output_var = "GENDER",
       var_to_add = "SEX"

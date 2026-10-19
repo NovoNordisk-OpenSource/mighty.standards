@@ -4,10 +4,15 @@ test_that("one join: only select_expr columns are added, rows without a match ge
     params = list(
       domain = "adlb",
       joins = list(
-        list(table = "adsl", select_expr = "USUBJID, SEX", keys = "\"USUBJID\"")
+        list(
+          table = "adsl",
+          select_expr = c("USUBJID", "SEX"),
+          keys = "USUBJID"
+        )
       ),
       domain_filter = NULL,
       global_filter = "SEX == 'F'",
+      has_keep_vars = FALSE,
       keep_vars = NULL
     )
   )
@@ -44,12 +49,13 @@ test_that("two join keys: row matching on one key only receives NA", {
       joins = list(
         list(
           table = "adsl",
-          select_expr = "STUDYID, USUBJID, SEX",
-          keys = "\"STUDYID\", \"USUBJID\""
+          select_expr = c("STUDYID", "USUBJID", "SEX"),
+          keys = c("STUDYID", "USUBJID")
         )
       ),
       domain_filter = NULL,
       global_filter = NULL,
+      has_keep_vars = FALSE,
       keep_vars = NULL
     )
   )
@@ -84,10 +90,15 @@ test_that("duplicate key in join dataset raises many-to-one error", {
     params = list(
       domain = "adlb",
       joins = list(
-        list(table = "adsl", select_expr = "USUBJID, SEX", keys = "\"USUBJID\"")
+        list(
+          table = "adsl",
+          select_expr = c("USUBJID", "SEX"),
+          keys = "USUBJID"
+        )
       ),
       domain_filter = NULL,
       global_filter = NULL,
+      has_keep_vars = FALSE,
       keep_vars = NULL
     ),
     check_coverage = FALSE
@@ -117,13 +128,18 @@ test_that("two joins: columns from both join datasets are usable in global_filte
       joins = list(
         list(
           table = "adsl",
-          select_expr = "USUBJID, SEX",
-          keys = "\"USUBJID\""
+          select_expr = c("USUBJID", "SEX"),
+          keys = "USUBJID"
         ),
-        list(table = "ex", select_expr = "USUBJID, EXTRT", keys = "\"USUBJID\"")
+        list(
+          table = "ex",
+          select_expr = c("USUBJID", "EXTRT"),
+          keys = "USUBJID"
+        )
       ),
       domain_filter = NULL,
       global_filter = "SEX == 'F', EXTRT == 'DRUG'",
+      has_keep_vars = FALSE,
       keep_vars = NULL
     )
   )
@@ -165,6 +181,7 @@ test_that("domain filter: keeps LB rows and XL rows with CHEMISTRY, removes SRC_
       joins = list(),
       domain_filter = "(SRC_ == 'LB') | (SRC_ == 'XL' & LBCAT == 'CHEMISTRY')",
       global_filter = NULL,
+      has_keep_vars = FALSE,
       keep_vars = NULL
     )
   )
@@ -197,6 +214,7 @@ test_that("global filter: comma-separated expressions are combined and rows fail
       joins = list(),
       domain_filter = NULL,
       global_filter = "!is.na(AVAL), AVAL > 0",
+      has_keep_vars = FALSE,
       keep_vars = NULL
     )
   )
@@ -226,7 +244,8 @@ test_that("keep_vars: result has only the listed columns, in the listed order", 
       joins = list(),
       domain_filter = NULL,
       global_filter = NULL,
-      keep_vars = "USUBJID, PARAMCD, AVAL"
+      has_keep_vars = TRUE,
+      keep_vars = c("USUBJID", "PARAMCD", "AVAL")
     )
   )
 
@@ -258,13 +277,14 @@ test_that("all blocks: join, domain filter and global filter all apply, then kee
       joins = list(
         list(
           table = "adsl",
-          select_expr = "STUDYID, USUBJID, SEX",
-          keys = "\"STUDYID\", \"USUBJID\""
+          select_expr = c("STUDYID", "USUBJID", "SEX"),
+          keys = c("STUDYID", "USUBJID")
         )
       ),
       domain_filter = "(SRC_ == 'LB') | (SRC_ == 'XL' & LBCAT == 'CHEMISTRY')",
       global_filter = "SEX == 'F'",
-      keep_vars = "USUBJID, PARAMCD, AVAL"
+      has_keep_vars = TRUE,
+      keep_vars = c("USUBJID", "PARAMCD", "AVAL")
     )
   )
 

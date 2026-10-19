@@ -10,19 +10,20 @@
 #'   filter evaluation. Each element is a list containing:
 #'   \describe{
 #'     \item{table}{Character string. Name of the dataset to join with.}
-#'     \item{select_expr}{Character string. Comma-separated column names to select from the join dataset.}
-#'     \item{keys}{Character string. Comma-separated quoted column names used as join keys (e.g. `"\"STUDYID\", \"USUBJID\""`).}
+#'     \item{select_expr}{Character vector. Column names to select from the join dataset.}
+#'     \item{keys}{Character vector. Column names used as join keys, unquoted (e.g. `c("STUDYID", "USUBJID")`). Passed to `dplyr::join_by()`.}
 #'   }
 #'   Empty list when no filter depends on an external dataset. Each join keeps the row count of `domain`. The join stops
 #'   with an error when a row in `domain` matches more than one row in the join dataset (duplicate keys).
 #' @param domain_filter Character string or `NULL`. Pre-formatted R expression filtering on `SRC_` (e.g. `"(SRC_ == 'LB') | (SRC_ == 'XL' & LBCAT == 'CHEMISTRY')"`). `NULL` when no domain-specific filter is defined — the filter block is skipped.
 #' @param global_filter Character string or `NULL`. Raw filter expression from the YAML spec (e.g. `"!is.na(SEX)"`). `NULL` when no global filter is defined — the filter block is skipped.
-#' @param keep_vars Character string or `NULL`. Comma-separated column names to retain. `NULL` when no selection is needed — the select block is skipped. `SRC_` is excluded automatically.
+#' @param has_keep_vars Logical. `TRUE` when `keep_vars` is non-empty, `FALSE` otherwise — the select block is skipped. Needed because a section over a vector repeats once per element.
+#' @param keep_vars Character vector. Column names to retain. Used only when `has_keep_vars` is `TRUE`. `SRC_` is excluded automatically.
 #' @code
 {{#joins}}
 {{{domain}}} <- {{{domain}}} |>
   dplyr::left_join({{{table}}} |> dplyr::select({{{select_expr}}}),
-                   by = c({{{keys}}}), relationship = "many-to-one")
+                   by = dplyr::join_by({{{keys}}}), relationship = "many-to-one")
 
 {{/joins}}
 {{#domain_filter}}
@@ -36,8 +37,8 @@
   dplyr::filter({{{global_filter}}})
 
 {{/global_filter}}
-{{#keep_vars}}
+{{#has_keep_vars}}
 {{{domain}}} <- {{{domain}}} |>
   dplyr::select({{{keep_vars}}})
 
-{{/keep_vars}}
+{{/has_keep_vars}}
