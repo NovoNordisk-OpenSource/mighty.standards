@@ -10,12 +10,13 @@ on:
       - main
       - 'dev/**'
   workflow_dispatch:
-permissions:
-  contents: read
+permissions: {}
 jobs:
   test-components:
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.os }} (R ${{ matrix.config.r }}${{ matrix.config.cran-date && format(', {0}', matrix.config.cran-date) || '' }})
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -39,15 +40,17 @@ jobs:
           - os: ubuntu-latest
             config: { r: oldrel-1 }
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: r-lib/actions/setup-r@465b7d8e732ca3921382b1674c59bada9cbf3399 # v2.13.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: ${{ !matrix.config.cran-date }}
           cran: ${{ matrix.config.cran-date && format('https://packagemanager.posit.co/cran/{0}', matrix.config.cran-date) || '' }}
           extra-repositories: ${{ matrix.config.cran-date && 'https://novonordisk-opensource.r-universe.dev' || '' }}
-      - uses: r-lib/actions/setup-r-dependencies@465b7d8e732ca3921382b1674c59bada9cbf3399 # v2.13.0
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2.14.0
       - name: Run component tests
         run: |
           dirs <- list.dirs("components", recursive = FALSE)
