@@ -1,4 +1,4 @@
-test_that("J1 one join: joined column is usable in global_filter and unmatched rows are dropped", {
+test_that("one join: joined column is usable in global_filter and unmatched rows are dropped", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -38,7 +38,7 @@ test_that("J1 one join: joined column is usable in global_filter and unmatched r
   expect_equal(result, expected)
 })
 
-test_that("J2 two join keys: row matching on one key only receives NA", {
+test_that("two join keys: row matching on one key only receives NA", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -78,7 +78,7 @@ test_that("J2 two join keys: row matching on one key only receives NA", {
   expect_equal(result, expected)
 })
 
-test_that("J3 duplicate key in join dataset raises many-to-one error", {
+test_that("duplicate key in join dataset raises many-to-one error", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -112,7 +112,59 @@ test_that("J3 duplicate key in join dataset raises many-to-one error", {
   )
 })
 
-test_that("D1 domain filter: keeps LB rows and XL rows with CHEMISTRY, removes SRC_", {
+test_that("two joins: columns from both join datasets are usable in global_filter", {
+  comp <- mighty.component::get_test_component(
+    component = "mighty_filter_domain.mustache",
+    params = list(
+      domain = "adlb",
+      joins = list(
+        list(
+          table = "adsl",
+          select_expr = "USUBJID, SEX",
+          keys = "\"USUBJID\""
+        ),
+        list(
+          table = "ex",
+          select_expr = "USUBJID, EXTRT",
+          keys = "\"USUBJID\""
+        )
+      ),
+      domain_filter = NULL,
+      global_filter = "SEX == 'F', EXTRT == 'DRUG'",
+      keep_vars = NULL
+    )
+  )
+
+  adlb <- data.frame(
+    USUBJID = c("01", "02", "03", "04"),
+    AVAL = c(1, 2, 3, 4)
+  )
+  adsl <- data.frame(
+    USUBJID = c("01", "02", "03", "04"),
+    SEX = c("F", "F", "M", "F")
+  )
+  ex <- data.frame(
+    USUBJID = c("01", "02", "03", "04"),
+    EXTRT = c("DRUG", "PLACEBO", "DRUG", "PLACEBO")
+  )
+  comp$assign("adlb", adlb)
+  comp$assign("adsl", adsl)
+  comp$assign("ex", ex)
+
+  comp$eval()
+
+  result <- comp$get("adlb")
+  expected <- data.frame(
+    USUBJID = "01",
+    AVAL = 1,
+    SEX = "F",
+    EXTRT = "DRUG"
+  )
+
+  expect_equal(result, expected)
+})
+
+test_that("domain filter: keeps LB rows and XL rows with CHEMISTRY, removes SRC_", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -142,7 +194,7 @@ test_that("D1 domain filter: keeps LB rows and XL rows with CHEMISTRY, removes S
   expect_equal(result, expected)
 })
 
-test_that("G1 global filter: comma-separated expressions are combined and rows failing any are removed", {
+test_that("global filter: comma-separated expressions are combined and rows failing any are removed", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -171,7 +223,7 @@ test_that("G1 global filter: comma-separated expressions are combined and rows f
   expect_equal(result, expected)
 })
 
-test_that("K1 keep_vars: result has only the listed columns, in the listed order", {
+test_that("keep_vars: result has only the listed columns, in the listed order", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -203,7 +255,7 @@ test_that("K1 keep_vars: result has only the listed columns, in the listed order
   expect_equal(result, expected)
 })
 
-test_that("C1 all blocks: joins run before filters, SRC_ is removed, keep_vars runs last", {
+test_that("all blocks: joins run before global_filter, SRC_ is removed, keep_vars runs last", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
