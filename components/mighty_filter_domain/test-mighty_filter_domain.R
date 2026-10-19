@@ -1,4 +1,4 @@
-test_that("one join: joined column is usable in global_filter, unmatched rows are dropped, several rows per key are kept", {
+test_that("one join: only select_expr columns are added, rows without a match get NA and fail global_filter", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -59,9 +59,9 @@ test_that("two join keys: row matching on one key only receives NA", {
     USUBJID = c("01", "01")
   )
   adsl <- data.frame(
-    STUDYID = c("STUDY1"),
-    USUBJID = c("01"),
-    SEX = c("F")
+    STUDYID = "STUDY1",
+    USUBJID = "01",
+    SEX = "F"
   )
   comp$assign("adlb", adlb)
   comp$assign("adsl", adsl)
@@ -94,7 +94,7 @@ test_that("duplicate key in join dataset raises many-to-one error", {
   )
 
   adlb <- data.frame(
-    USUBJID = c("01")
+    USUBJID = "01"
   )
   adsl <- data.frame(
     USUBJID = c("01", "01"),
@@ -211,8 +211,8 @@ test_that("global filter: comma-separated expressions are combined and rows fail
 
   result <- comp$get("adlb")
   expected <- data.frame(
-    USUBJID = c("01"),
-    AVAL = c(5)
+    USUBJID = "01",
+    AVAL = 5
   )
 
   expect_equal(result, expected)
