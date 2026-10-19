@@ -1,4 +1,4 @@
-test_that("one join key: global filter uses joined column and drops unmatched rows", {
+test_that("one join: joined column is usable in global_filter, unmatched rows are dropped, several rows per key are kept", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -36,7 +36,7 @@ test_that("one join key: global filter uses joined column and drops unmatched ro
   expect_equal(result, expected)
 })
 
-test_that("two join keys: unmatched rows on second key receive NA", {
+test_that("two join keys: row matching on one key only receives NA", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -109,7 +109,55 @@ test_that("duplicate key in join dataset raises many-to-one error", {
   )
 })
 
-test_that("domain filter: keeps rows per SRC_ rule and removes SRC_", {
+test_that("two joins: columns from both join datasets are usable in global_filter", {
+  comp <- mighty.component::get_test_component(
+    component = "mighty_filter_domain.mustache",
+    params = list(
+      domain = "adlb",
+      joins = list(
+        list(
+          table = "adsl",
+          select_expr = "USUBJID, SEX",
+          keys = "\"USUBJID\""
+        ),
+        list(table = "ex", select_expr = "USUBJID, EXTRT", keys = "\"USUBJID\"")
+      ),
+      domain_filter = NULL,
+      global_filter = "SEX == 'F', EXTRT == 'DRUG'",
+      keep_vars = NULL
+    )
+  )
+
+  adlb <- data.frame(
+    USUBJID = c("01", "02", "03", "04"),
+    AVAL = c(1, 2, 3, 4)
+  )
+  adsl <- data.frame(
+    USUBJID = c("01", "02", "03", "04"),
+    SEX = c("F", "F", "M", "F")
+  )
+  ex <- data.frame(
+    USUBJID = c("01", "02", "03", "04"),
+    EXTRT = c("DRUG", "PLACEBO", "DRUG", "PLACEBO")
+  )
+  comp$assign("adlb", adlb)
+  comp$assign("adsl", adsl)
+  comp$assign("ex", ex)
+
+  comp$eval()
+
+  result <- comp$get("adlb")
+  expected <- data.frame(
+    USUBJID = "01",
+    AVAL = 1,
+    SEX = "F",
+    EXTRT = "DRUG"
+  )
+
+  expect_equal(result, expected)
+})
+
+test_that("domain filter: keeps LB rows and XL rows with CHEMISTRY, removes SRC_", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -141,7 +189,7 @@ test_that("domain filter: keeps rows per SRC_ rule and removes SRC_", {
   expect_equal(result, expected)
 })
 
-test_that("global filter: removes rows with NA or non-positive AVAL", {
+test_that("global filter: comma-separated expressions are combined and rows failing any are removed", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -170,7 +218,7 @@ test_that("global filter: removes rows with NA or non-positive AVAL", {
   expect_equal(result, expected)
 })
 
-test_that("keep_vars: keeps only listed columns in listed order", {
+test_that("keep_vars: result has only the listed columns, in the listed order", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
@@ -202,7 +250,7 @@ test_that("keep_vars: keeps only listed columns in listed order", {
   expect_equal(result, expected)
 })
 
-test_that("all blocks: join, domain filter, global filter and keep_vars combine", {
+test_that("all blocks: join, domain filter and global filter all apply, then keep_vars selects the final columns", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
