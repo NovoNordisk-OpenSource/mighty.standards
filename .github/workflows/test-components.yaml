@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - 'dev/**'
   pull_request:
     branches:
       - main
-      - 'dev/**'
   workflow_dispatch:
 permissions: {}
 jobs:
@@ -22,10 +20,6 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         config:
-          - r: '4.3.1'
-            cran-date: '2023-10-25'
-          - r: '4.4.1'
-            cran-date: '2024-08-06'
           - r: '4.5.2'
             cran-date: '2025-12-05'
         include:
