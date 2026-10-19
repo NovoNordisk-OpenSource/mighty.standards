@@ -17,7 +17,7 @@
 #'   with an error when a row in `domain` matches more than one row in the join dataset (duplicate keys).
 #' @param domain_filter Character string or `NULL`. Pre-formatted R expression filtering on `SRC_` (e.g. `"(SRC_ == 'LB') | (SRC_ == 'XL' & LBCAT == 'CHEMISTRY')"`). `NULL` when no domain-specific filter is defined — the filter block is skipped.
 #' @param global_filter Character string or `NULL`. Raw filter expression from the YAML spec (e.g. `"!is.na(SEX)"`). `NULL` when no global filter is defined — the filter block is skipped.
-#' @param keep_vars Character vector or `NULL`. Column names to retain. `NULL` when no selection is needed — the select block is skipped. `SRC_` is excluded automatically.
+#' @param keep_vars Character vector or `NULL`. Column names to retain. `NULL` when no selection is needed. `SRC_` is excluded automatically.
 #' @param has_keep_vars Logical. `TRUE` when `keep_vars` has columns; the select block is skipped when `FALSE`.
 #' @code
 {{#joins}}
