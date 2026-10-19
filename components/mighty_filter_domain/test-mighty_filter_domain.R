@@ -2,7 +2,7 @@ test_that("one join key: global filter uses joined column and drops unmatched ro
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       joins = list(
         list(table = "adsl", select_expr = "USUBJID, SEX", keys = "\"USUBJID\"")
       ),
@@ -40,7 +40,7 @@ test_that("two join keys: unmatched rows on second key receive NA", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       joins = list(
         list(
           table = "adsl",
@@ -82,7 +82,7 @@ test_that("duplicate key in join dataset raises many-to-one error", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       joins = list(
         list(table = "adsl", select_expr = "USUBJID, SEX", keys = "\"USUBJID\"")
       ),
@@ -113,7 +113,7 @@ test_that("domain filter: keeps rows per SRC_ rule and removes SRC_", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       joins = list(),
       domain_filter = "(SRC_ == 'LB') | (SRC_ == 'XL' & LBCAT == 'CHEMISTRY')",
       global_filter = NULL,
@@ -145,7 +145,7 @@ test_that("global filter: removes rows with NA or non-positive AVAL", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       joins = list(),
       domain_filter = NULL,
       global_filter = "!is.na(AVAL), AVAL > 0",
@@ -174,7 +174,7 @@ test_that("keep_vars: keeps only listed columns in listed order", {
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       joins = list(),
       domain_filter = NULL,
       global_filter = NULL,
@@ -206,7 +206,7 @@ test_that("all blocks: join, domain filter, global filter and keep_vars combine"
   comp <- mighty.component::get_test_component(
     component = "mighty_filter_domain.mustache",
     params = list(
-      self = "adlb",
+      domain = "adlb",
       joins = list(
         list(
           table = "adsl",
