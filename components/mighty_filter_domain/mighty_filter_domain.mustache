@@ -13,7 +13,8 @@
 #'     \item{select_expr}{Character string. Comma-separated column names to select from the join dataset.}
 #'     \item{keys}{Character string. Comma-separated quoted column names used as join keys (e.g. `"\"STUDYID\", \"USUBJID\""`).}
 #'   }
-#'   Empty list when no filter depends on an external dataset.
+#'   Empty list when no filter depends on an external dataset. Each join keeps the row count of `domain`. The join stops
+#'   with an error when a row in `domain` matches more than one row in the join dataset (duplicate keys).
 #' @param domain_filter Character string or `NULL`. Pre-formatted R expression filtering on `SRC_` (e.g. `"(SRC_ == 'LB') | (SRC_ == 'XL' & LBCAT == 'CHEMISTRY')"`). `NULL` when no domain-specific filter is defined — the filter block is skipped.
 #' @param global_filter Character string or `NULL`. Raw filter expression from the YAML spec (e.g. `"!is.na(SEX)"`). `NULL` when no global filter is defined — the filter block is skipped.
 #' @param keep_vars Character string or `NULL`. Comma-separated column names to retain. `NULL` when no selection is needed — the select block is skipped. `SRC_` is excluded automatically.
@@ -21,7 +22,7 @@
 {{#joins}}
 {{{domain}}} <- {{{domain}}} |>
   dplyr::left_join({{{table}}} |> dplyr::select({{{select_expr}}}),
-                   by = c({{{keys}}}))
+                   by = c({{{keys}}}), relationship = "many-to-one")
 
 {{/joins}}
 {{#domain_filter}}
