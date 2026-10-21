@@ -1,35 +1,23 @@
-# Create temporary connector structure with datasets and write _connector.yml
+# Write datasets as .rds files, one folder per data type, and return the path to a _connector.yml for them
 local_connector <- function(datasets, .local_envir = parent.frame()) {
   temp_dir <- withr::local_tempdir(.local_envir = .local_envir)
-
-  lines <- "datasources:"
-  for (dtype in names(datasets)) {
+  datasources <- lapply(names(datasets), function(dtype) {
     type_dir <- file.path(temp_dir, dtype)
-    dir.create(type_dir, showWarnings = FALSE)
+    dir.create(type_dir)
     for (name in names(datasets[[dtype]])) {
       saveRDS(
         datasets[[dtype]][[name]],
         file.path(type_dir, paste0(tolower(name), ".rds"))
       )
     }
-    lines <- c(
-      lines,
-      sprintf("  - name: \"%s\"", dtype),
-      "    backend:",
-      "      type: \"connector_fs\"",
-      sprintf(
-        "      path: \"%s\"",
-        normalizePath(type_dir, winslash = "/", mustWork = FALSE)
-      )
-    )
-  }
-
+    list(name = dtype, backend = list(type = "connector_fs", path = type_dir))
+  })
   cfg_path <- file.path(temp_dir, "_connector.yml")
-  writeLines(lines, cfg_path)
+  yaml::write_yaml(list(datasources = datasources), cfg_path)
   cfg_path
 }
 
-test_that("non-self domain: only keep_vars columns are kept, rows and values unchanged", {
+test_that("other domain: only keep_vars columns are kept, rows and values unchanged", {
   dm <- data.frame(
     USUBJID = c("01", "02"),
     ARM = c("ARM A", "ARM B"),
@@ -63,7 +51,7 @@ test_that("non-self domain: only keep_vars columns are kept, rows and values unc
   expect_equal(result, expected)
 })
 
-test_that("self and other domain: self domain is read whole and other domain is selected", {
+test_that("current and other domain: current domain is read whole and other domain is selected", {
   adsl <- data.frame(
     USUBJID = c("01", "02"),
     ARM = c("ARM A", "ARM B"),
