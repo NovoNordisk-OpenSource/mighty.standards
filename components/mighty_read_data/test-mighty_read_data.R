@@ -1,0 +1,259 @@
+# Create temporary connector structure with datasets and write _connector.yml
+local_connector <- function(datasets, .local_envir = parent.frame()) {
+  temp_dir <- withr::local_tempdir(.local_envir = .local_envir)
+
+  lines <- "datasources:"
+  for (dtype in names(datasets)) {
+    type_dir <- file.path(temp_dir, dtype)
+    dir.create(type_dir, showWarnings = FALSE)
+    for (name in names(datasets[[dtype]])) {
+      saveRDS(
+        datasets[[dtype]][[name]],
+        file.path(type_dir, paste0(tolower(name), ".rds"))
+      )
+    }
+    lines <- c(
+      lines,
+      sprintf("  - name: \"%s\"", dtype),
+      "    backend:",
+      "      type: \"connector_fs\"",
+      sprintf(
+        "      path: \"%s\"",
+        normalizePath(type_dir, winslash = "/", mustWork = FALSE)
+      )
+    )
+  }
+
+  cfg_path <- file.path(temp_dir, "_connector.yml")
+  writeLines(lines, cfg_path)
+  cfg_path
+}
+
+test_that("non-self domain: only keep_vars columns are kept, rows and values unchanged", {
+  dm <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B"),
+    SEX = c("M", "F")
+  )
+  path <- local_connector(list(sdtm = list(DM = dm)))
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_read_data.mustache",
+    params = list(
+      connector_path_expr = deparse(path),
+      domains = list(
+        list(
+          is_current_domain = FALSE,
+          domain_name = "DM",
+          data_type = "sdtm",
+          keep_vars = c("USUBJID", "ARM")
+        )
+      )
+    )
+  )
+
+  comp$eval()
+
+  result <- comp$get("DM")
+  expected <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B")
+  )
+
+  expect_equal(result, expected)
+})
+
+test_that("self and other domain: self domain is read whole and other domain is selected", {
+  adsl <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B"),
+    SEX = c("M", "F")
+  )
+  dm <- data.frame(
+    USUBJID = c("01", "02"),
+    STUDYID = c("STUDY1", "STUDY1"),
+    AGE = c(25, 30)
+  )
+  path <- local_connector(list(
+    adam = list(ADSL = adsl),
+    sdtm = list(DM = dm)
+  ))
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_read_data.mustache",
+    params = list(
+      connector_path_expr = deparse(path),
+      domains = list(
+        list(
+          is_current_domain = TRUE,
+          domain_name = "ADSL",
+          data_type = "adam",
+          keep_vars = c("USUBJID", "ARM")
+        ),
+        list(
+          is_current_domain = FALSE,
+          domain_name = "DM",
+          data_type = "sdtm",
+          keep_vars = c("USUBJID", "STUDYID")
+        )
+      )
+    )
+  )
+
+  comp$eval()
+
+  result_adsl <- comp$get("ADSL")
+  expected_adsl <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B"),
+    SEX = c("M", "F")
+  )
+  expect_equal(result_adsl, expected_adsl)
+
+  result_dm <- comp$get("DM")
+  expected_dm <- data.frame(
+    USUBJID = c("01", "02"),
+    STUDYID = c("STUDY1", "STUDY1")
+  )
+  expect_equal(result_dm, expected_dm)
+})
+
+test_that("data_type routing: reads each domain from its own datasource and selects columns", {
+  dm <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B"),
+    SEX = c("M", "F")
+  )
+  adsl <- data.frame(
+    USUBJID = c("01", "02"),
+    TRT01P = c("ARM A", "ARM B"),
+    AGE = c(25, 30)
+  )
+  mdcol <- data.frame(
+    DOMAIN = c("DM", "ADSL"),
+    VAR = c("USUBJID", "USUBJID"),
+    LABEL = c("Unique Subject Identifier", "Unique Subject Identifier")
+  )
+  path <- local_connector(list(
+    sdtm = list(DM = dm),
+    adam = list(ADSL = adsl),
+    metadata = list(MDCOL = mdcol)
+  ))
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_read_data.mustache",
+    params = list(
+      connector_path_expr = deparse(path),
+      domains = list(
+        list(
+          is_current_domain = FALSE,
+          domain_name = "DM",
+          data_type = "sdtm",
+          keep_vars = c("USUBJID", "ARM")
+        ),
+        list(
+          is_current_domain = FALSE,
+          domain_name = "ADSL",
+          data_type = "adam",
+          keep_vars = c("USUBJID", "TRT01P")
+        ),
+        list(
+          is_current_domain = FALSE,
+          domain_name = "MDCOL",
+          data_type = "metadata",
+          keep_vars = c("DOMAIN", "VAR")
+        )
+      )
+    )
+  )
+
+  comp$eval()
+
+  result_dm <- comp$get("DM")
+  expected_dm <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B")
+  )
+  expect_equal(result_dm, expected_dm)
+
+  result_adsl <- comp$get("ADSL")
+  expected_adsl <- data.frame(
+    USUBJID = c("01", "02"),
+    TRT01P = c("ARM A", "ARM B")
+  )
+  expect_equal(result_adsl, expected_adsl)
+
+  result_mdcol <- comp$get("MDCOL")
+  expected_mdcol <- data.frame(
+    DOMAIN = c("DM", "ADSL"),
+    VAR = c("USUBJID", "USUBJID")
+  )
+  expect_equal(result_mdcol, expected_mdcol)
+})
+
+test_that("bare R expression path: evaluates path expression and reads domain correctly", {
+  dm <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B"),
+    SEX = c("M", "F")
+  )
+  path <- local_connector(list(sdtm = list(DM = dm)))
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_read_data.mustache",
+    params = list(
+      connector_path_expr = sprintf(
+        "file.path(%s, '_connector.yml')",
+        deparse(dirname(path))
+      ),
+      domains = list(
+        list(
+          is_current_domain = FALSE,
+          domain_name = "DM",
+          data_type = "sdtm",
+          keep_vars = c("USUBJID", "ARM")
+        )
+      )
+    )
+  )
+
+  comp$eval()
+
+  result <- comp$get("DM")
+  expected <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B")
+  )
+
+  expect_equal(result, expected)
+})
+
+test_that("missing keep_vars column: raises out of bounds subscript error", {
+  dm <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B")
+  )
+  path <- local_connector(list(sdtm = list(DM = dm)))
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_read_data.mustache",
+    params = list(
+      connector_path_expr = deparse(path),
+      domains = list(
+        list(
+          is_current_domain = FALSE,
+          domain_name = "DM",
+          data_type = "sdtm",
+          keep_vars = c("USUBJID", "NONEXISTENT")
+        )
+      )
+    ),
+    check_coverage = FALSE
+  )
+
+  # mighty removes unavailable columns before rendering; this test records the template's behavior if it does not
+  expect_error(
+    comp$eval(),
+    class = "vctrs_error_subscript_oob"
+  )
+})
