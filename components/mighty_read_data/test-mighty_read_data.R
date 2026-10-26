@@ -34,7 +34,7 @@ test_that("other domain: only keep_vars columns are kept, rows and values unchan
           is_current_domain = FALSE,
           domain_name = "DM",
           data_type = "sdtm",
-          keep_vars = c("USUBJID", "ARM")
+          keep_vars = c("ARM", "USUBJID")
         )
       )
     )
