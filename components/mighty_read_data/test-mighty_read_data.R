@@ -76,6 +76,7 @@ test_that("current and other domain: current domain is read whole and other doma
           is_current_domain = TRUE,
           domain_name = "ADSL",
           data_type = "adam",
+          # is_current_domain = TRUE, hence domain is read whole, and SEX is kept in expected_adsl
           keep_vars = c("USUBJID", "ARM")
         ),
         list(
