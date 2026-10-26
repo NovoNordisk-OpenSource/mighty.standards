@@ -244,3 +244,37 @@ test_that("keep_vars column missing from the data and not commented out: raises 
     class = "vctrs_error_subscript_oob"
   )
 })
+
+test_that("existing dataset: is overwritten, as when a later program rewrites the domain", {
+  path <- local_connector(list(
+    adam = list(ADSL = data.frame(USUBJID = "OLD", ARM = "OLD"))
+  ))
+  expect_equal(connector::connect(path)$adam$read_cnt("adsl.rds")$USUBJID, "OLD")
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_write_data.mustache",
+    params = list(
+      domain = "ADSL",
+      row_order_vars = "USUBJID",
+      keep_vars = "USUBJID,\nARM",
+      file_ext = "rds"
+    )
+  )
+
+  ADSL <- data.frame(
+    USUBJID = c("02", "01"),
+    ARM = c("ARM B", "ARM A")
+  )
+  comp$assign("ADSL", ADSL)
+  comp$assign("cnt", connector::connect(path))
+
+  comp$eval()
+
+  result <- connector::connect(path)$adam$read_cnt("adsl.rds")
+  expected <- data.frame(
+    USUBJID = c("01", "02"),
+    ARM = c("ARM A", "ARM B")
+  )
+
+  expect_equal(result, expected)
+})
