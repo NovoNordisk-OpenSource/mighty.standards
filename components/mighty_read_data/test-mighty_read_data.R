@@ -216,6 +216,31 @@ test_that("bare R expression path: evaluates path expression and reads domain co
   expect_equal(result, expected)
 })
 
+test_that("connector object: `cnt` is left in the environment for mighty_write_data", {
+  dm <- data.frame(USUBJID = c("01", "02"))
+  path <- local_connector(list(sdtm = list(DM = dm)))
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_read_data.mustache",
+    params = list(
+      connector_path_expr = deparse(path),
+      domains = list(
+        list(
+          is_current_domain = FALSE,
+          domain_name = "DM",
+          data_type = "sdtm",
+          keep_vars = c("USUBJID")
+        )
+      )
+    )
+  )
+
+  comp$eval()
+
+  # mighty_write_data (last step of every program) writes via `cnt$adam$write_cnt()`
+  expect_s3_class(comp$get("cnt"), "connectors")
+})
+
 test_that("missing keep_vars column: raises out of bounds subscript error", {
   dm <- data.frame(
     USUBJID = c("01", "02"),
