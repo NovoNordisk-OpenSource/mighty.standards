@@ -3,16 +3,16 @@ test_that("one source: result has only keep_vars columns, in keep_vars order", {
     component = "mighty_init_domain.mustache",
     params = list(
       domain = "adlb",
-      keep_vars = c("USUBJID", "PARAMCD", "AVAL"),
+      keep_vars = c("USUBJID", "LBTESTCD", "LBSTRESN"),
       source_domain_rbind = "LB",
       src_mutations = list()
     )
   )
 
   LB <- data.frame(
-    AVAL = c(1, 2),
+    LBSTRESN = c(1, 2),
     STUDYID = c("STUDY1", "STUDY1"),
-    PARAMCD = c("ALT", "AST"),
+    LBTESTCD = c("ALT", "AST"),
     USUBJID = c("01", "02")
   )
   comp$assign("LB", LB)
@@ -22,8 +22,8 @@ test_that("one source: result has only keep_vars columns, in keep_vars order", {
   result <- comp$get("adlb")
   expected <- data.frame(
     USUBJID = c("01", "02"),
-    PARAMCD = c("ALT", "AST"),
-    AVAL = c(1, 2)
+    LBTESTCD = c("ALT", "AST"),
+    LBSTRESN = c(1, 2)
   )
 
   expect_equal(result, expected)
