@@ -245,6 +245,41 @@ test_that("keep_vars column missing from the data and not commented out: raises 
   )
 })
 
+test_that("NA key values: rows are sorted last within the preceding keys", {
+  path <- local_connector(list(adam = list()))
+
+  comp <- mighty.component::get_test_component(
+    component = "mighty_write_data.mustache",
+    params = list(
+      domain = "ADLB",
+      row_order_vars = "USUBJID,\nAVISITN",
+      keep_vars = "USUBJID,\nAVISITN,\nAVAL",
+      file_ext = "parquet"
+    )
+  )
+
+  ADLB <- data.frame(
+    USUBJID = c("02", "01", "01", "01"),
+    AVISITN = c(1, NA, 2, 1),
+    AVAL = c(4, 3, 2, 1)
+  )
+  comp$assign("ADLB", ADLB)
+  comp$assign("cnt", connector::connect(path))
+
+  comp$eval()
+
+  result <- as.data.frame(connector::connect(path)$adam$read_cnt(
+    "adlb.parquet"
+  ))
+  expected <- data.frame(
+    USUBJID = c("01", "01", "01", "02"),
+    AVISITN = c(1, 2, NA, 1),
+    AVAL = c(1, 2, 3, 4)
+  )
+
+  expect_equal(result, expected)
+})
+
 test_that("existing dataset: is overwritten, as when a later program rewrites the domain", {
   path <- local_connector(list(
     adam = list(ADSL = data.frame(USUBJID = "OLD", ARM = "OLD"))
