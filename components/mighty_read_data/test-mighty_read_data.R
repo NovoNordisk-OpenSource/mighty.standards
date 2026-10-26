@@ -17,7 +17,7 @@ local_connector <- function(datasets, .local_envir = parent.frame()) {
   cfg_path
 }
 
-test_that("other domain: only keep_vars columns are kept, rows and values unchanged", {
+test_that("other domain: only keep_vars columns are kept, in keep_vars order, rows and values unchanged", {
   dm <- data.frame(
     USUBJID = c("01", "02"),
     ARM = c("ARM A", "ARM B"),
