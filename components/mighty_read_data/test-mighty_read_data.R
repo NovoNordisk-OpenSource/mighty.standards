@@ -44,8 +44,8 @@ test_that("other domain: only keep_vars columns are kept, rows and values unchan
 
   result <- comp$get("DM")
   expected <- data.frame(
-    USUBJID = c("01", "02"),
-    ARM = c("ARM A", "ARM B")
+    ARM = c("ARM A", "ARM B"),
+    USUBJID = c("01", "02")
   )
 
   expect_equal(result, expected)
