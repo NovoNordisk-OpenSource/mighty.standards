@@ -76,7 +76,6 @@ test_that("current and other domain: current domain is read whole and other doma
           is_current_domain = TRUE,
           domain_name = "ADSL",
           data_type = "adam",
-          # is_current_domain = TRUE, hence domain is read whole, and SEX is kept in expected_adsl
           keep_vars = c("USUBJID", "ARM")
         ),
         list(
@@ -92,6 +91,8 @@ test_that("current and other domain: current domain is read whole and other doma
   comp$eval()
 
   result_adsl <- comp$get("ADSL")
+  
+  # Includes SEX although it is not in keep_vars, because the current domain is read with all columns
   expected_adsl <- data.frame(
     USUBJID = c("01", "02"),
     ARM = c("ARM A", "ARM B"),
