@@ -52,3 +52,27 @@ test_that("existing rename_var column: errors on duplicate names", {
     class = "vctrs_error_names_must_be_unique"
   )
 })
+
+test_that("missing source_var: errors instead of silently dropping rename_var", {
+  comp <- mighty.component::get_test_component(
+    component = "mighty_col_rename.mustache",
+    params = list(
+      domain = "adlb",
+      rename_var = "SRCSEQ",
+      source_var = "LBSEQ"
+    ),
+    check_coverage = FALSE
+  )
+
+  adlb <- data.frame(
+    USUBJID = c("01", "02"),
+    PARAMCD = c("ALT", "AST")
+  )
+  comp$assign("adlb", adlb)
+
+  expect_error(
+    comp$eval(),
+    class = "vctrs_error_subscript_oob"
+  )
+})
+
