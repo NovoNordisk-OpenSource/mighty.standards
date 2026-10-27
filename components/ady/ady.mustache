@@ -1,0 +1,24 @@
+#' @title Analysis relative day
+#' @description
+#' Derives the relative day compared to the treatment start date.
+#'
+#' @param domain Name of ADaM domain
+#' @param variable Name of new variable to create
+#' @param date Name of date variable to use
+#' @type column
+#' @origin Derived
+#' @method Number of days from TRTSDT to {{{date}}}, counting both endpoints.
+#' @depends {{{domain}}} {{{date}}}
+#' @depends {{{domain}}} TRTSDT
+#' @outputs {{{variable}}}
+#' @code
+{{{domain}}} <- {{{domain}}} |>
+  dplyr::mutate(
+    {{{variable}}} = admiral::compute_duration(
+      start_date = TRTSDT,
+      end_date = {{{date}}},
+      in_unit = "days",
+      out_unit = "days",
+      add_one = TRUE
+    )
+  )
