@@ -240,7 +240,8 @@ test_that("connector object: `cnt` is left in the environment for mighty_write_d
   comp$eval()
 
   # mighty_write_data (last step of every program) writes via `cnt$adam$write_cnt()`
-  expect_s3_class(comp$get("cnt"), "connectors")
+  # connector 1.0.0.9004 (r-universe dev) is S7 with class "connector::connectors"; CRAN 1.0.0 is S3 "connectors"
+  expect_s3_class(comp$get("cnt"), c("connectors", "connector::connectors"))
 })
 
 test_that("missing keep_vars column: raises out of bounds subscript error", {
