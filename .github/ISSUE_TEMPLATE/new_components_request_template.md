@@ -1,6 +1,6 @@
 ---
-name: Component specification
-about: Specify a new standard component (parameters, contract, test cases)
+name: Request for new component
+about: Request a new standard component and specify its parameters, contract and test cases
 title: "[FEAT] Component name"
 labels: ''
 assignees: ''
