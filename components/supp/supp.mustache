@@ -1,6 +1,7 @@
 #' @title Add supplemental qualifiers
 #' @description
-#' Adds values from a supplemental qualifier (SUPP--) data set as columns, one column for each QNAM.
+#' Transposes a supplemental qualifier (SUPP--) data set to one column for each QNAM, and merges the columns into
+#' the domain by USUBJID and, when `idvar` is given, by the `idvar` variable.
 #'
 #' @param domain `character` Name of the domain that gets the new columns
 #' @param source `character` Name of the SUPP-- data set, for example SUPPAE
@@ -9,6 +10,7 @@
 #' subject-level records, where IDVAR is blank. Do not use "".
 #' @type column
 #' @origin Predecessor
+#' @method QVAL from the SUPP-- data set, transposed by QNAM and merged by USUBJID and IDVAR/IDVARVAL
 #' @depends {{{domain}}} USUBJID
 {{#idvar}}
 #' @depends {{{domain}}} {{{idvar}}}
@@ -22,22 +24,27 @@
 {{#qnam}}
 #' @outputs {{{.}}}
 {{/qnam}}
-#' @spec Derivation: For each QNAM in `qnam`, make a column with the same name. Copy QVAL from the `source`
-#'   record with the same QNAM and the same USUBJID.
-#'   When `idvar` is given, the record must also match on the `domain` variable that `idvar` names. When that
-#'   variable is numeric, IDVARVAL read as a number is equal to it. When that variable is character, IDVARVAL is the
-#'   same text.
-#'   When `idvar` is NULL, the match uses only USUBJID, so each record of the subject gets the value.
-#'   One `source` record can match more than one `domain` record. Each of these records gets the value.
-#'   When no `source` record matches, the value is missing. This includes a `domain` record with a missing
-#'   value in the `idvar` variable, a QNAM with no records, and a `source` with zero rows. QNAM must be the same
-#'   text. QVAL is copied without change.
-#'   Requires: For each `source` record with QNAM in `qnam`:
-#'   When `idvar` is given, IDVAR is equal to `idvar`, and IDVARVAL is character and not blank. The `idvar`
-#'   variable in `domain` is numeric or character. When it is numeric, IDVARVAL is a number written as text.
-#'   When `idvar` is NULL, IDVAR and IDVARVAL are blank ("" or missing).
-#'   There is at most one record for each USUBJID, IDVARVAL and QNAM. When the `idvar` variable is numeric, this
-#'   applies after IDVARVAL is read as a number.
-#'   QVAL is not blank. USUBJID, QNAM and QVAL are character. USUBJID identifies one subject across all studies in
-#'   the data.
-#'   Guarantees: Each column in `qnam` exists and is character. Its values are QVAL or missing.
+#' @code
+# Match key for each record: USUBJID, and the IDVARVAL value when idvar is given
+{{#idvar}}
+supp_id <- {{{source}}}[["IDVARVAL"]]
+domain_id <- {{{domain}}}[["{{{idvar}}}"]]
+if (is.numeric(domain_id)) {
+  # Compare as double on both sides, so that "01" matches 1 and integer and double give the same text
+  supp_id <- as.numeric(supp_id)
+  domain_id <- as.numeric(domain_id)
+}
+# "\r" does not occur in USUBJID or IDVARVAL, so the joined key is unique
+supp_key <- paste({{{source}}}[["USUBJID"]], supp_id, sep = "\r")
+domain_key <- paste({{{domain}}}[["USUBJID"]], domain_id, sep = "\r")
+domain_key[is.na(domain_id)] <- NA_character_
+{{/idvar}}
+{{^idvar}}
+supp_key <- {{{source}}}[["USUBJID"]]
+domain_key <- {{{domain}}}[["USUBJID"]]
+{{/idvar}}
+
+{{#qnam}}
+is_qnam <- {{{source}}}[["QNAM"]] %in% "{{{.}}}"
+{{{domain}}}[["{{{.}}}"]] <- {{{source}}}[["QVAL"]][is_qnam][match(domain_key, supp_key[is_qnam])]
+{{/qnam}}
