@@ -22,6 +22,13 @@ assignees: ''
 | `domain` | character | Name of the ADaM dataset |
 | `...` | ... | ... |
 
+## Template metadata
+List metadata for the template that should be used for `define.xml`
+| Template metadata | Description |
+|---|---|
+| `origin` | `Derived` or `Asigned` |
+| `method` |  method description in template |
+
 ## Contract
 
 Number the clauses in one sequence across all three sections. Test cases refer to these numbers.
