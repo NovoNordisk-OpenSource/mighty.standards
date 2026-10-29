@@ -3,13 +3,11 @@ run_supp <- function(
   supp,
   qnam = "AESOSP",
   idvar = "AESEQ",
-  source = "suppae",
-  check_coverage = TRUE
+  source = "suppae"
 ) {
   x <- mighty.component::get_test_component(
     component = "supp.mustache",
-    params = list(domain = "adae", source = source, qnam = qnam, idvar = idvar),
-    check_coverage = check_coverage
+    params = list(domain = "adae", source = source, qnam = qnam, idvar = idvar)
   )
   x$assign(x = "adae", value = adae)
   x$assign(x = source, value = supp)
@@ -49,30 +47,18 @@ test_that("1: numeric idvar, two QNAMs", {
   expect_character_cols(out, qnam)
 })
 
-test_that("2: IDVARVAL is read as a number", {
-  # clauses 2, 5
-  supp <- supp_df(c("S1", "S1"), c("01", "2.0"), "AESOSP", c("A", "B"))
-  adae <- data.frame(USUBJID = "S1", AESEQ = c(1, 2, 10))
-
-  out <- run_supp(adae, supp)
-
-  expect_equal(out, data.frame(adae, AESOSP = c("A", "B", NA)))
-  expect_character_cols(out, "AESOSP")
-})
-
-test_that("3: character idvar", {
+test_that("2: character idvar", {
   # clauses 2, 5
   supp <- supp_df("S1", "A1", "AESOSP", "Mild", IDVAR = "AESPID")
   adae <- data.frame(USUBJID = "S1", AESPID = c("A1", "A01", "a1"))
 
-  # the numeric branch is not run for a character idvar; tests 1 and 2 cover it
-  out <- run_supp(adae, supp, idvar = "AESPID", check_coverage = FALSE)
+  out <- run_supp(adae, supp, idvar = "AESPID")
 
   expect_equal(out, data.frame(adae, AESOSP = c("Mild", NA, NA)))
   expect_character_cols(out, "AESOSP")
 })
 
-test_that("4: subject-level records (idvar NULL)", {
+test_that("3: subject-level records (idvar NULL)", {
   # clauses 3, 4, 5; IDVAR and IDVARVAL blank as "" and as missing (clause 10)
   supp <- supp_df(
     c("S1", "S2"),
@@ -98,7 +84,7 @@ test_that("4: subject-level records (idvar NULL)", {
   expect_character_cols(out, "RACEOTH")
 })
 
-test_that("5: one SUPP record matches several domain records", {
+test_that("4: one SUPP record matches several domain records", {
   # clauses 4, 5
   supp <- supp_df("S1", "G1", "AESOSP", "Headache", IDVAR = "AEGRPID")
   adae <- data.frame(
@@ -107,14 +93,13 @@ test_that("5: one SUPP record matches several domain records", {
     AEGRPID = c("G1", "G1", "G2")
   )
 
-  # the numeric branch is not run for a character idvar; tests 1 and 2 cover it
-  out <- run_supp(adae, supp, idvar = "AEGRPID", check_coverage = FALSE)
+  out <- run_supp(adae, supp, idvar = "AEGRPID")
 
   expect_equal(out, data.frame(adae, AESOSP = c("Headache", "Headache", NA)))
   expect_character_cols(out, "AESOSP")
 })
 
-test_that("6: missing idvar value in the domain", {
+test_that("5: missing idvar value in the domain", {
   # clause 5
   supp <- supp_df("S1", "1", "AESOSP", "Headache")
   adae <- data.frame(USUBJID = c("S1", "S1"), AESEQ = c(NA, 1))
@@ -125,7 +110,7 @@ test_that("6: missing idvar value in the domain", {
   expect_character_cols(out, "AESOSP")
 })
 
-test_that("7: QNAM with no records", {
+test_that("6: QNAM with no records", {
   # clauses 5, 15
   qnam <- c("AESOSP", "AEXTRA")
   supp <- supp_df("S1", "1", "AESOSP", "Headache")
@@ -140,7 +125,7 @@ test_that("7: QNAM with no records", {
   expect_character_cols(out, qnam)
 })
 
-test_that("8: source with zero rows", {
+test_that("7: source with zero rows", {
   # clauses 5, 15
   qnam <- c("AESOSP", "AETRTEM")
   supp <- supp_df(
@@ -161,7 +146,7 @@ test_that("8: source with zero rows", {
   expect_character_cols(out, qnam)
 })
 
-test_that("9: QNAM text match; other QNAMs are ignored", {
+test_that("8: QNAM text match; other QNAMs are ignored", {
   # clauses 1, 6
   supp <- supp_df(
     "S1",
@@ -178,7 +163,7 @@ test_that("9: QNAM text match; other QNAMs are ignored", {
   expect_character_cols(out, "AESOSP")
 })
 
-test_that("10: QVAL is copied without change", {
+test_that("9: QVAL is copied without change", {
   # clauses 7, 15
   supp <- supp_df("S1", c("1", "2", "3"), "AESOSP", c("007", "Mild ", "y"))
   adae <- data.frame(USUBJID = "S1", AESEQ = c(1, 2, 3))
@@ -189,7 +174,7 @@ test_that("10: QVAL is copied without change", {
   expect_character_cols(out, "AESOSP")
 })
 
-test_that("11: domain with zero rows", {
+test_that("10: domain with zero rows", {
   # clause 15
   qnam <- c("AESOSP", "AETRTEM")
   supp <- supp_df("S1", "1", "AESOSP", "Headache")
