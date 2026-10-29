@@ -1,7 +1,7 @@
 ---
 name: Request for new component
 about: Request a new standard component and specify its parameters, contract and test cases
-title: "[FEAT] Component name"
+title: "[COMP] Component name"
 labels: ''
 assignees: ''
 
