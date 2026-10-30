@@ -25,21 +25,20 @@
 #' @outputs {{{.}}}
 {{/qnam}}
 #' @code
-# Match key for each record: USUBJID, and the IDVARVAL value when idvar is given
+supp_add <- {{{source}}}
 {{#idvar}}
-supp_id <- {{{source}}}[["IDVARVAL"]]
-domain_id <- {{{domain}}}[["{{{idvar}}}"]]
-# "\r" does not occur in USUBJID or IDVARVAL, so the joined key is unique
-supp_key <- paste({{{source}}}[["USUBJID"]], supp_id, sep = "\r")
-domain_key <- paste({{{domain}}}[["USUBJID"]], domain_id, sep = "\r")
-domain_key[is.na(domain_id)] <- NA_character_
+# Give IDVARVAL the type of the idvar, so that the join can compare them
+supp_add[["IDVARVAL"]] <- as.vector(supp_add[["IDVARVAL"]], mode({{{domain}}}[["{{{idvar}}}"]]))
 {{/idvar}}
-{{^idvar}}
-supp_key <- {{{source}}}[["USUBJID"]]
-domain_key <- {{{domain}}}[["USUBJID"]]
-{{/idvar}}
-
 {{#qnam}}
-is_qnam <- {{{source}}}[["QNAM"]] %in% "{{{.}}}"
-{{{domain}}}[["{{{.}}}"]] <- {{{source}}}[["QVAL"]][is_qnam][match(domain_key, supp_key[is_qnam])]
+{{{domain}}} <- admiral::derive_vars_merged(
+  {{{domain}}},
+  dataset_add = supp_add,
+  by_vars = admiral::exprs(USUBJID{{#idvar}}, {{{idvar}}} = IDVARVAL{{/idvar}}),
+  new_vars = admiral::exprs({{{.}}} = QVAL),
+  {{#idvar}}
+  # A missing IDVARVAL must not match a missing idvar value
+  {{/idvar}}
+  filter_add = QNAM == "{{{.}}}"{{#idvar}} & !is.na(IDVARVAL){{/idvar}}
+)
 {{/qnam}}

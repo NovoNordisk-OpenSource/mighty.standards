@@ -189,6 +189,49 @@ test_that("10: domain with zero rows", {
   expect_character_cols(out, qnam)
 })
 
+test_that("11: large numeric idvar value", {
+  # paste(100000) gives "1e+05", so a text match would fail
+  supp <- supp_df("S1", "100000", "AESOSP", "Headache")
+  adae <- data.frame(USUBJID = "S1", AESEQ = 100000)
+
+  out <- run_supp(adae, supp)
+
+  expect_equal(out, data.frame(adae, AESOSP = "Headache"))
+})
+
+test_that("12: missing IDVARVAL does not match a missing idvar value", {
+  supp <- supp_df("S1", c("", NA), "AESOSP", c("A", "B"))
+
+  adae <- data.frame(USUBJID = "S1", AESEQ = NA_real_)
+  expect_equal(run_supp(adae, supp), data.frame(adae, AESOSP = NA_character_))
+
+  adae <- data.frame(USUBJID = "S1", AEGRPID = NA_character_)
+  expect_equal(
+    run_supp(adae, supp, idvar = "AEGRPID"),
+    data.frame(adae, AESOSP = NA_character_)
+  )
+})
+
+test_that("13: duplicate SUPP records give an error", {
+  x <- mighty.component::get_test_component(
+    component = "supp.mustache",
+    params = list(
+      domain = "adae",
+      source = "suppae",
+      qnam = "AESOSP",
+      idvar = "AESEQ"
+    ),
+    # eval stops at the error, so the lines after it do not run
+    check_coverage = FALSE
+  )
+  x$assign(x = "adae", value = data.frame(USUBJID = "S1", AESEQ = 1))
+  x$assign(
+    x = "suppae",
+    value = supp_df("S1", c("1", "1"), "AESOSP", c("A", "B"))
+  )
+  expect_error(x$eval(), "duplicate records")
+})
+
 test_that("depends and outputs match the issue", {
   get_meta <- function(idvar) {
     mighty.component::get_test_component(
