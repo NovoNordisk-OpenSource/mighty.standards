@@ -1,0 +1,44 @@
+#' @title Add supplemental qualifiers
+#' @description
+#' Transposes a supplemental qualifier (SUPP--) data set to one column for each QNAM, and merges the columns into
+#' the domain by USUBJID and, when `idvar` is given, by the `idvar` variable.
+#'
+#' @param domain `character` Name of the domain that gets the new columns
+#' @param source `character` Name of the SUPP-- data set, for example SUPPAE
+#' @param qnam `character` One or more QNAM values to add as columns
+#' @param idvar `character` Name of the variable in `domain` that IDVAR refers to, for example AESEQ. Use NULL for
+#' subject-level records, where IDVAR is blank. Do not use "".
+#' @type column
+#' @origin Predecessor
+#' @method QVAL from the SUPP-- data set, transposed by QNAM and merged by USUBJID and IDVAR/IDVARVAL
+#' @depends {{{domain}}} USUBJID
+{{#idvar}}
+#' @depends {{{domain}}} {{{idvar}}}
+{{/idvar}}
+#' @depends {{{source}}} USUBJID
+{{#idvar}}
+#' @depends {{{source}}} IDVARVAL
+{{/idvar}}
+#' @depends {{{source}}} QNAM
+#' @depends {{{source}}} QVAL
+{{#qnam}}
+#' @outputs {{{.}}}
+{{/qnam}}
+#' @code
+supp_add <- {{{source}}}
+{{#idvar}}
+# Give IDVARVAL the type of the idvar, so that the join can compare them
+supp_add[["IDVARVAL"]] <- as.vector(supp_add[["IDVARVAL"]], mode({{{domain}}}[["{{{idvar}}}"]]))
+{{/idvar}}
+{{#qnam}}
+{{{domain}}} <- admiral::derive_vars_merged(
+  {{{domain}}},
+  dataset_add = supp_add,
+  by_vars = admiral::exprs(USUBJID{{#idvar}}, {{{idvar}}} = IDVARVAL{{/idvar}}),
+  new_vars = admiral::exprs({{{.}}} = QVAL),
+  {{#idvar}}
+  # A missing IDVARVAL must not match a missing idvar value
+  {{/idvar}}
+  filter_add = QNAM == "{{{.}}}"{{#idvar}} & !is.na(IDVARVAL){{/idvar}}
+)
+{{/qnam}}
